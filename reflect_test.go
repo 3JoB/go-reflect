@@ -6,7 +6,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/goccy/go-reflect"
+	"github.com/3JoB/go-reflect"
 )
 
 func TestTypeID(t *testing.T) {
@@ -64,7 +64,7 @@ func TestToValue(t *testing.T) {
 func TestNewAt(t *testing.T) {
 	var i int
 
-	ivalFromField := reflect.ValueOf(&struct{ foo int }{100}).Elem().Field(0)
+	ivalFromField := reflect.ValueOf(&struct{ foo int }{foo: 100}).Elem().Field(0)
 	ival := reflect.ValueOf(&i).Elem()
 
 	v := reflect.NewAt(ivalFromField.Type(), unsafe.Pointer(ivalFromField.UnsafeAddr())).Elem()

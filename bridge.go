@@ -37,6 +37,10 @@ func toV(v reflect.Value) Value {
 	return *(*Value)(unsafe.Pointer(&v))
 }
 
+func ToV(v reflect.Value) Value {
+	return toV(v)
+}
+
 func toVs(v []reflect.Value) []Value {
 	out := make([]Value, len(v))
 	for idx, vv := range v {

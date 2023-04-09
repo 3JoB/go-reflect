@@ -25,23 +25,24 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	. "github.com/goccy/go-reflect"
+	. "github.com/3JoB/go-reflect"
 )
 
 const (
 	PtrSize = 8
 )
 
-var sink interface{}
+var sink any
 
 func TestBool(t *testing.T) {
 	v := ValueOf(true)
-	if v.Bool() != true {
+	if !v.Bool() {
 		t.Fatal("ValueOf(true).Bool() = false")
 	}
 }
 
 type integer int
+
 type T struct {
 	a int
 	b float64
@@ -50,7 +51,7 @@ type T struct {
 }
 
 type pair struct {
-	i interface{}
+	i any
 	s string
 }
 
@@ -61,59 +62,59 @@ func assert(t *testing.T, s, want string) {
 }
 
 var typeTests = []pair{
-	{struct{ x int }{}, "int"},
-	{struct{ x int8 }{}, "int8"},
-	{struct{ x int16 }{}, "int16"},
-	{struct{ x int32 }{}, "int32"},
-	{struct{ x int64 }{}, "int64"},
-	{struct{ x uint }{}, "uint"},
-	{struct{ x uint8 }{}, "uint8"},
-	{struct{ x uint16 }{}, "uint16"},
-	{struct{ x uint32 }{}, "uint32"},
-	{struct{ x uint64 }{}, "uint64"},
-	{struct{ x float32 }{}, "float32"},
-	{struct{ x float64 }{}, "float64"},
-	{struct{ x int8 }{}, "int8"},
-	{struct{ x (**int8) }{}, "**int8"},
-	{struct{ x (**integer) }{}, "**reflect_test.integer"},
-	{struct{ x ([32]int32) }{}, "[32]int32"},
-	{struct{ x ([]int8) }{}, "[]int8"},
-	{struct{ x (map[string]int32) }{}, "map[string]int32"},
-	{struct{ x (chan<- string) }{}, "chan<- string"},
-	{struct {
+	{i: struct{ x int }{}, s: "int"},
+	{i: struct{ x int8 }{}, s: "int8"},
+	{i: struct{ x int16 }{}, s: "int16"},
+	{i: struct{ x int32 }{}, s: "int32"},
+	{i: struct{ x int64 }{}, s: "int64"},
+	{i: struct{ x uint }{}, s: "uint"},
+	{i: struct{ x uint8 }{}, s: "uint8"},
+	{i: struct{ x uint16 }{}, s: "uint16"},
+	{i: struct{ x uint32 }{}, s: "uint32"},
+	{i: struct{ x uint64 }{}, s: "uint64"},
+	{i: struct{ x float32 }{}, s: "float32"},
+	{i: struct{ x float64 }{}, s: "float64"},
+	{i: struct{ x int8 }{}, s: "int8"},
+	{i: struct{ x (**int8) }{}, s: "**int8"},
+	{i: struct{ x (**integer) }{}, s: "**reflect_test.integer"},
+	{i: struct{ x ([32]int32) }{}, s: "[32]int32"},
+	{i: struct{ x ([]int8) }{}, s: "[]int8"},
+	{i: struct{ x (map[string]int32) }{}, s: "map[string]int32"},
+	{i: struct{ x (chan<- string) }{}, s: "chan<- string"},
+	{i: struct {
 		x struct {
 			c chan *int32
 			d float32
 		}
 	}{},
-		"struct { c chan *int32; d float32 }",
+		s: "struct { c chan *int32; d float32 }",
 	},
-	{struct{ x (func(a int8, b int32)) }{}, "func(int8, int32)"},
-	{struct {
+	{i: struct{ x (func(a int8, b int32)) }{}, s: "func(int8, int32)"},
+	{i: struct {
 		x struct {
 			c func(chan *integer, *int8)
 		}
 	}{},
-		"struct { c func(chan *reflect_test.integer, *int8) }",
+		s: "struct { c func(chan *reflect_test.integer, *int8) }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8
 			b int32
 		}
 	}{},
-		"struct { a int8; b int32 }",
+		s: "struct { a int8; b int32 }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8
 			b int8
 			c int32
 		}
 	}{},
-		"struct { a int8; b int8; c int32 }",
+		s: "struct { a int8; b int8; c int32 }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8
 			b int8
@@ -121,9 +122,9 @@ var typeTests = []pair{
 			d int32
 		}
 	}{},
-		"struct { a int8; b int8; c int8; d int32 }",
+		s: "struct { a int8; b int8; c int8; d int32 }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8
 			b int8
@@ -132,9 +133,9 @@ var typeTests = []pair{
 			e int32
 		}
 	}{},
-		"struct { a int8; b int8; c int8; d int8; e int32 }",
+		s: "struct { a int8; b int8; c int8; d int8; e int32 }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8
 			b int8
@@ -144,92 +145,92 @@ var typeTests = []pair{
 			f int32
 		}
 	}{},
-		"struct { a int8; b int8; c int8; d int8; e int8; f int32 }",
+		s: "struct { a int8; b int8; c int8; d int8; e int8; f int32 }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8 `reflect:"hi there"`
 		}
 	}{},
-		`struct { a int8 "reflect:\"hi there\"" }`,
+		s: `struct { a int8 "reflect:\"hi there\"" }`,
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			a int8 `reflect:"hi \x00there\t\n\"\\"`
 		}
 	}{},
-		`struct { a int8 "reflect:\"hi \\x00there\\t\\n\\\"\\\\\"" }`,
+		s: `struct { a int8 "reflect:\"hi \\x00there\\t\\n\\\"\\\\\"" }`,
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			f func(args ...int)
 		}
 	}{},
-		"struct { f func(...int) }",
+		s: "struct { f func(...int) }",
 	},
-	{struct {
+	{i: struct {
 		x (interface {
 			a(func(func(int) int) func(func(int)) int)
 			b()
 		})
 	}{},
-		"interface { reflect_test.a(func(func(int) int) func(func(int)) int); reflect_test.b() }",
+		s: "interface { reflect_test.a(func(func(int) int) func(func(int)) int); reflect_test.b() }",
 	},
-	{struct {
+	{i: struct {
 		x struct {
 			int32
 			int64
 		}
 	}{},
-		"struct { int32; int64 }",
+		s: "struct { int32; int64 }",
 	},
 }
 
 var valueTests = []pair{
-	{new(int), "132"},
-	{new(int8), "8"},
-	{new(int16), "16"},
-	{new(int32), "32"},
-	{new(int64), "64"},
-	{new(uint), "132"},
-	{new(uint8), "8"},
-	{new(uint16), "16"},
-	{new(uint32), "32"},
-	{new(uint64), "64"},
-	{new(float32), "256.25"},
-	{new(float64), "512.125"},
-	{new(complex64), "532.125+10i"},
-	{new(complex128), "564.25+1i"},
-	{new(string), "stringy cheese"},
-	{new(bool), "true"},
-	{new(*int8), "*int8(0)"},
-	{new(**int8), "**int8(0)"},
-	{new([5]int32), "[5]int32{0, 0, 0, 0, 0}"},
-	{new(**integer), "**reflect_test.integer(0)"},
-	{new(map[string]int32), "map[string]int32{<can't iterate on maps>}"},
-	{new(chan<- string), "chan<- string"},
-	{new(func(a int8, b int32)), "func(int8, int32)(0)"},
-	{new(struct {
+	{i: new(int), s: "132"},
+	{i: new(int8), s: "8"},
+	{i: new(int16), s: "16"},
+	{i: new(int32), s: "32"},
+	{i: new(int64), s: "64"},
+	{i: new(uint), s: "132"},
+	{i: new(uint8), s: "8"},
+	{i: new(uint16), s: "16"},
+	{i: new(uint32), s: "32"},
+	{i: new(uint64), s: "64"},
+	{i: new(float32), s: "256.25"},
+	{i: new(float64), s: "512.125"},
+	{i: new(complex64), s: "532.125+10i"},
+	{i: new(complex128), s: "564.25+1i"},
+	{i: new(string), s: "stringy cheese"},
+	{i: new(bool), s: "true"},
+	{i: new(*int8), s: "*int8(0)"},
+	{i: new(**int8), s: "**int8(0)"},
+	{i: new([5]int32), s: "[5]int32{0, 0, 0, 0, 0}"},
+	{i: new(**integer), s: "**reflect_test.integer(0)"},
+	{i: new(map[string]int32), s: "map[string]int32{<can't iterate on maps>}"},
+	{i: new(chan<- string), s: "chan<- string"},
+	{i: new(func(a int8, b int32)), s: "func(int8, int32)(0)"},
+	{i: new(struct {
 		c chan *int32
 		d float32
 	}),
-		"struct { c chan *int32; d float32 }{chan *int32, 0}",
+		s: "struct { c chan *int32; d float32 }{chan *int32, 0}",
 	},
-	{new(struct{ c func(chan *integer, *int8) }),
-		"struct { c func(chan *reflect_test.integer, *int8) }{func(chan *reflect_test.integer, *int8)(0)}",
+	{i: new(struct{ c func(chan *integer, *int8) }),
+		s: "struct { c func(chan *reflect_test.integer, *int8) }{func(chan *reflect_test.integer, *int8)(0)}",
 	},
-	{new(struct {
+	{i: new(struct {
 		a int8
 		b int32
 	}),
-		"struct { a int8; b int32 }{0, 0}",
+		s: "struct { a int8; b int32 }{0, 0}",
 	},
-	{new(struct {
+	{i: new(struct {
 		a int8
 		b int8
 		c int32
 	}),
-		"struct { a int8; b int8; c int32 }{0, 0, 0}",
+		s: "struct { a int8; b int8; c int32 }{0, 0, 0}",
 	},
 }
 
@@ -365,38 +366,38 @@ func TestCanSetField(t *testing.T) {
 	}{{
 		val: ValueOf(&S1{}),
 		cases: []testCase{
-			{[]int{0}, false},
-			{[]int{0, 0}, false},
-			{[]int{0, 1}, true},
-			{[]int{1}, false},
-			{[]int{2}, true},
+			{index: []int{0}, canSet: false},
+			{index: []int{0, 0}, canSet: false},
+			{index: []int{0, 1}, canSet: true},
+			{index: []int{1}, canSet: false},
+			{index: []int{2}, canSet: true},
 		},
 	}, {
 		val: ValueOf(&S2{embed: &embed{}}),
 		cases: []testCase{
-			{[]int{0}, false},
-			{[]int{0, 0}, false},
-			{[]int{0, 1}, true},
-			{[]int{1}, false},
-			{[]int{2}, true},
+			{index: []int{0}, canSet: false},
+			{index: []int{0, 0}, canSet: false},
+			{index: []int{0, 1}, canSet: true},
+			{index: []int{1}, canSet: false},
+			{index: []int{2}, canSet: true},
 		},
 	}, {
 		val: ValueOf(&S3{}),
 		cases: []testCase{
-			{[]int{0}, true},
-			{[]int{0, 0}, false},
-			{[]int{0, 1}, true},
-			{[]int{1}, false},
-			{[]int{2}, true},
+			{index: []int{0}, canSet: true},
+			{index: []int{0, 0}, canSet: false},
+			{index: []int{0, 1}, canSet: true},
+			{index: []int{1}, canSet: false},
+			{index: []int{2}, canSet: true},
 		},
 	}, {
 		val: ValueOf(&S4{Embed: &Embed{}}),
 		cases: []testCase{
-			{[]int{0}, true},
-			{[]int{0, 0}, false},
-			{[]int{0, 1}, true},
-			{[]int{1}, false},
-			{[]int{2}, true},
+			{index: []int{0}, canSet: true},
+			{index: []int{0, 0}, canSet: false},
+			{index: []int{0, 1}, canSet: true},
+			{index: []int{1}, canSet: false},
+			{index: []int{2}, canSet: true},
 		},
 	}}
 
@@ -421,16 +422,16 @@ func TestCanSetField(t *testing.T) {
 var _i = 7
 
 var valueToStringTests = []pair{
-	{123, "123"},
-	{123.5, "123.5"},
-	{byte(123), "123"},
-	{"abc", "abc"},
-	{T{123, 456.75, "hello", &_i}, "reflect_test.T{123, 456.75, hello, *int(&7)}"},
-	{new(chan *T), "*chan *reflect_test.T(&chan *reflect_test.T)"},
-	{[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}"},
-	{&[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "*[10]int(&[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})"},
-	{[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}"},
-	{&[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "*[]int(&[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})"},
+	{i: 123, s: "123"},
+	{i: 123.5, s: "123.5"},
+	{i: byte(123), s: "123"},
+	{i: "abc", s: "abc"},
+	{i: T{a: 123, b: 456.75, c: "hello", d: &_i}, s: "reflect_test.T{123, 456.75, hello, *int(&7)}"},
+	{i: new(chan *T), s: "*chan *reflect_test.T(&chan *reflect_test.T)"},
+	{i: [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, s: "[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}"},
+	{i: &[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, s: "*[10]int(&[10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})"},
+	{i: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, s: "[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}"},
+	{i: &[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, s: "*[]int(&[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})"},
 }
 
 func TestValueToString(t *testing.T) {
@@ -546,7 +547,7 @@ func TestAll(t *testing.T) {
 
 func TestInterfaceGet(t *testing.T) {
 	var inter struct {
-		E interface{}
+		E any
 	}
 	inter.E = 123.456
 	v1 := ValueOf(&inter)
@@ -559,7 +560,7 @@ func TestInterfaceGet(t *testing.T) {
 
 func TestInterfaceValue(t *testing.T) {
 	var inter struct {
-		E interface{}
+		E any
 	}
 	inter.E = 123.456
 	v1 := ValueOf(&inter)
@@ -575,7 +576,7 @@ func TestInterfaceValue(t *testing.T) {
 }
 
 func TestFunctionValue(t *testing.T) {
-	var x interface{} = func() {}
+	var x any = func() {}
 	v := ValueOf(x)
 	if fmt.Sprint(v.Interface()) != fmt.Sprint(x) {
 		t.Fatalf("TestFunction returned wrong pointer")
@@ -586,8 +587,8 @@ func TestFunctionValue(t *testing.T) {
 var appendTests = []struct {
 	orig, extra []int
 }{
-	{make([]int, 2, 4), []int{22}},
-	{make([]int, 2, 4), []int{22, 33, 44}},
+	{orig: make([]int, 2, 4), extra: []int{22}},
+	{orig: make([]int, 2, 4), extra: []int{22, 33, 44}},
 }
 
 func sameInts(x, y []int) bool {
@@ -744,7 +745,7 @@ func TestCopyArray(t *testing.T) {
 }
 
 func TestBigUnnamedStruct(t *testing.T) {
-	b := struct{ a, b, c, d int64 }{1, 2, 3, 4}
+	b := struct{ a, b, c, d int64 }{a: 1, b: 2, c: 3, d: 4}
 	v := ValueOf(b)
 	b1 := v.Interface().(struct {
 		a, b, c, d int64
@@ -759,7 +760,7 @@ type big struct {
 }
 
 func TestBigStruct(t *testing.T) {
-	b := big{1, 2, 3, 4, 5}
+	b := big{a: 1, b: 2, c: 3, d: 4, e: 5}
 	v := ValueOf(b)
 	b1 := v.Interface().(big)
 	if b1.a != b.a || b1.b != b.b || b1.c != b.c || b1.d != b.d || b1.e != b.e {
@@ -775,7 +776,7 @@ type Basic struct {
 type NotBasic Basic
 
 type DeepEqualTest struct {
-	a, b interface{}
+	a, b any
 	eq   bool
 }
 
@@ -789,7 +790,8 @@ var (
 type self struct{}
 
 type Loop *Loop
-type Loopy interface{}
+
+type Loopy any
 
 var loop1, loop2 Loop
 var loopy1, loopy2 Loopy
@@ -804,68 +806,68 @@ func init() {
 
 var deepEqualTests = []DeepEqualTest{
 	// Equalities
-	{nil, nil, true},
-	{1, 1, true},
-	{int32(1), int32(1), true},
-	{0.5, 0.5, true},
-	{float32(0.5), float32(0.5), true},
-	{"hello", "hello", true},
-	{make([]int, 10), make([]int, 10), true},
-	{&[3]int{1, 2, 3}, &[3]int{1, 2, 3}, true},
-	{Basic{1, 0.5}, Basic{1, 0.5}, true},
-	{error(nil), error(nil), true},
-	{map[int]string{1: "one", 2: "two"}, map[int]string{2: "two", 1: "one"}, true},
-	{fn1, fn2, true},
+	{a: nil, b: nil, eq: true},
+	{a: 1, b: 1, eq: true},
+	{a: int32(1), b: int32(1), eq: true},
+	{a: 0.5, b: 0.5, eq: true},
+	{a: float32(0.5), b: float32(0.5), eq: true},
+	{a: "hello", b: "hello", eq: true},
+	{a: make([]int, 10), b: make([]int, 10), eq: true},
+	{a: &[3]int{1, 2, 3}, b: &[3]int{1, 2, 3}, eq: true},
+	{a: Basic{x: 1, y: 0.5}, b: Basic{x: 1, y: 0.5}, eq: true},
+	{a: error(nil), b: error(nil), eq: true},
+	{a: map[int]string{1: "one", 2: "two"}, b: map[int]string{2: "two", 1: "one"}, eq: true},
+	{a: fn1, b: fn2, eq: true},
 
 	// Inequalities
-	{1, 2, false},
-	{int32(1), int32(2), false},
-	{0.5, 0.6, false},
-	{float32(0.5), float32(0.6), false},
-	{"hello", "hey", false},
-	{make([]int, 10), make([]int, 11), false},
-	{&[3]int{1, 2, 3}, &[3]int{1, 2, 4}, false},
-	{Basic{1, 0.5}, Basic{1, 0.6}, false},
-	{Basic{1, 0}, Basic{2, 0}, false},
-	{map[int]string{1: "one", 3: "two"}, map[int]string{2: "two", 1: "one"}, false},
-	{map[int]string{1: "one", 2: "txo"}, map[int]string{2: "two", 1: "one"}, false},
-	{map[int]string{1: "one"}, map[int]string{2: "two", 1: "one"}, false},
-	{map[int]string{2: "two", 1: "one"}, map[int]string{1: "one"}, false},
-	{nil, 1, false},
-	{1, nil, false},
-	{fn1, fn3, false},
-	{fn3, fn3, false},
-	{[][]int{{1}}, [][]int{{2}}, false},
-	{math.NaN(), math.NaN(), false},
-	{&[1]float64{math.NaN()}, &[1]float64{math.NaN()}, false},
-	{&[1]float64{math.NaN()}, self{}, true},
-	{[]float64{math.NaN()}, []float64{math.NaN()}, false},
-	{[]float64{math.NaN()}, self{}, true},
-	{map[float64]float64{math.NaN(): 1}, map[float64]float64{1: 2}, false},
-	{map[float64]float64{math.NaN(): 1}, self{}, true},
+	{a: 1, b: 2, eq: false},
+	{a: int32(1), b: int32(2), eq: false},
+	{a: 0.5, b: 0.6, eq: false},
+	{a: float32(0.5), b: float32(0.6), eq: false},
+	{a: "hello", b: "hey", eq: false},
+	{a: make([]int, 10), b: make([]int, 11), eq: false},
+	{a: &[3]int{1, 2, 3}, b: &[3]int{1, 2, 4}, eq: false},
+	{a: Basic{x: 1, y: 0.5}, b: Basic{x: 1, y: 0.6}, eq: false},
+	{a: Basic{x: 1, y: 0}, b: Basic{x: 2, y: 0}, eq: false},
+	{a: map[int]string{1: "one", 3: "two"}, b: map[int]string{2: "two", 1: "one"}, eq: false},
+	{a: map[int]string{1: "one", 2: "txo"}, b: map[int]string{2: "two", 1: "one"}, eq: false},
+	{a: map[int]string{1: "one"}, b: map[int]string{2: "two", 1: "one"}, eq: false},
+	{a: map[int]string{2: "two", 1: "one"}, b: map[int]string{1: "one"}, eq: false},
+	{a: nil, b: 1, eq: false},
+	{a: 1, b: nil, eq: false},
+	{a: fn1, b: fn3, eq: false},
+	{a: fn3, b: fn3, eq: false},
+	{a: [][]int{{1}}, b: [][]int{{2}}, eq: false},
+	{a: math.NaN(), b: math.NaN(), eq: false},
+	{a: &[1]float64{math.NaN()}, b: &[1]float64{math.NaN()}, eq: false},
+	{a: &[1]float64{math.NaN()}, b: self{}, eq: true},
+	{a: []float64{math.NaN()}, b: []float64{math.NaN()}, eq: false},
+	{a: []float64{math.NaN()}, b: self{}, eq: true},
+	{a: map[float64]float64{math.NaN(): 1}, b: map[float64]float64{1: 2}, eq: false},
+	{a: map[float64]float64{math.NaN(): 1}, b: self{}, eq: true},
 
 	// Nil vs empty: not the same.
-	{[]int{}, []int(nil), false},
-	{[]int{}, []int{}, true},
-	{[]int(nil), []int(nil), true},
-	{map[int]int{}, map[int]int(nil), false},
-	{map[int]int{}, map[int]int{}, true},
-	{map[int]int(nil), map[int]int(nil), true},
+	{a: []int{}, b: []int(nil), eq: false},
+	{a: []int{}, b: []int{}, eq: true},
+	{a: []int(nil), b: []int(nil), eq: true},
+	{a: map[int]int{}, b: map[int]int(nil), eq: false},
+	{a: map[int]int{}, b: map[int]int{}, eq: true},
+	{a: map[int]int(nil), b: map[int]int(nil), eq: true},
 
 	// Mismatched types
-	{1, 1.0, false},
-	{int32(1), int64(1), false},
-	{0.5, "hello", false},
-	{[]int{1, 2, 3}, [3]int{1, 2, 3}, false},
-	{&[3]interface{}{1, 2, 4}, &[3]interface{}{1, 2, "s"}, false},
-	{Basic{1, 0.5}, NotBasic{1, 0.5}, false},
-	{map[uint]string{1: "one", 2: "two"}, map[int]string{2: "two", 1: "one"}, false},
+	{a: 1, b: 1.0, eq: false},
+	{a: int32(1), b: int64(1), eq: false},
+	{a: 0.5, b: "hello", eq: false},
+	{a: []int{1, 2, 3}, b: [3]int{1, 2, 3}, eq: false},
+	{a: &[3]any{1, 2, 4}, b: &[3]any{1, 2, "s"}, eq: false},
+	{a: Basic{x: 1, y: 0.5}, b: NotBasic{x: 1, y: 0.5}, eq: false},
+	{a: map[uint]string{1: "one", 2: "two"}, b: map[int]string{2: "two", 1: "one"}, eq: false},
 
 	// Possible loops.
-	{&loop1, &loop1, true},
-	{&loop1, &loop2, true},
-	{&loopy1, &loopy1, true},
-	{&loopy1, &loopy2, true},
+	{a: &loop1, b: &loop1, eq: true},
+	{a: &loop1, b: &loop2, eq: true},
+	{a: &loopy1, b: &loopy1, eq: true},
+	{a: &loopy1, b: &loopy2, eq: true},
 }
 
 func TestDeepEqual(t *testing.T) {
@@ -903,8 +905,8 @@ type Recursive struct {
 
 func TestDeepEqualRecursiveStruct(t *testing.T) {
 	a, b := new(Recursive), new(Recursive)
-	*a = Recursive{12, a}
-	*b = Recursive{12, b}
+	*a = Recursive{x: 12, r: a}
+	*b = Recursive{x: 12, r: b}
 	if !DeepEqual(a, b) {
 		t.Error("DeepEqual(recursive same) = false, want true")
 	}
@@ -921,8 +923,8 @@ func TestDeepEqualComplexStruct(t *testing.T) {
 	m := make(map[float64]float64)
 	stra, strb := "hello", "hello"
 	a, b := new(_Complex), new(_Complex)
-	*a = _Complex{5, [3]*_Complex{a, b, a}, &stra, m}
-	*b = _Complex{5, [3]*_Complex{b, a, a}, &strb, m}
+	*a = _Complex{a: 5, b: [3]*_Complex{a, b, a}, c: &stra, d: m}
+	*b = _Complex{a: 5, b: [3]*_Complex{b, a, a}, c: &strb, d: m}
 	if !DeepEqual(a, b) {
 		t.Error("DeepEqual(complex same) = false, want true")
 	}
@@ -932,8 +934,8 @@ func TestDeepEqualComplexStructInequality(t *testing.T) {
 	m := make(map[float64]float64)
 	stra, strb := "hello", "helloo" // Difference is here
 	a, b := new(_Complex), new(_Complex)
-	*a = _Complex{5, [3]*_Complex{a, b, a}, &stra, m}
-	*b = _Complex{5, [3]*_Complex{b, a, a}, &strb, m}
+	*a = _Complex{a: 5, b: [3]*_Complex{a, b, a}, c: &stra, d: m}
+	*b = _Complex{a: 5, b: [3]*_Complex{b, a, a}, c: &strb, d: m}
 	if DeepEqual(a, b) {
 		t.Error("DeepEqual(complex different) = true, want false")
 	}
@@ -945,19 +947,19 @@ type UnexpT struct {
 
 func TestDeepEqualUnexportedMap(t *testing.T) {
 	// Check that DeepEqual can look at unexported fields.
-	x1 := UnexpT{map[int]int{1: 2}}
-	x2 := UnexpT{map[int]int{1: 2}}
+	x1 := UnexpT{m: map[int]int{1: 2}}
+	x2 := UnexpT{m: map[int]int{1: 2}}
 	if !DeepEqual(&x1, &x2) {
 		t.Error("DeepEqual(x1, x2) = false, want true")
 	}
 
-	y1 := UnexpT{map[int]int{2: 3}}
+	y1 := UnexpT{m: map[int]int{2: 3}}
 	if DeepEqual(&x1, &y1) {
 		t.Error("DeepEqual(x1, y1) = true, want false")
 	}
 }
 
-func check2ndField(x interface{}, offs uintptr, t *testing.T) {
+func check2ndField(x any, offs uintptr, t *testing.T) {
 	s := ValueOf(x)
 	f := s.Type().Field(1)
 	if f.Offset != offs {
@@ -983,21 +985,21 @@ func TestAlignment(t *testing.T) {
 		f int
 	}
 
-	x := T1{T1inner{2}, 17}
+	x := T1{T1inner: T1inner{a: 2}, f: 17}
 	check2ndField(x, uintptr(unsafe.Pointer(&x.f))-uintptr(unsafe.Pointer(&x)), t)
 
-	x1 := T2{T2inner{2, 3}, 17}
+	x1 := T2{T2inner: T2inner{a: 2, b: 3}, f: 17}
 	check2ndField(x1, uintptr(unsafe.Pointer(&x1.f))-uintptr(unsafe.Pointer(&x1)), t)
 }
 
-func Nil(a interface{}, t *testing.T) {
+func Nil(a any, t *testing.T) {
 	n := ValueOf(a).Field(0)
 	if !n.IsNil() {
 		t.Errorf("%v should be nil", a)
 	}
 }
 
-func NotNil(a interface{}, t *testing.T) {
+func NotNil(a any, t *testing.T) {
 	n := ValueOf(a).Field(0)
 	if n.IsNil() {
 		t.Errorf("value of type %v should not be nil", ValueOf(a).Type().String())
@@ -1007,9 +1009,9 @@ func NotNil(a interface{}, t *testing.T) {
 func TestIsNil(t *testing.T) {
 	// These implement IsNil.
 	// Wrap in extra struct to hide interface type.
-	doNil := []interface{}{
+	doNil := []any{
 		struct{ x *int }{},
-		struct{ x interface{} }{},
+		struct{ x any }{},
 		struct{ x map[string]int }{},
 		struct{ x func() bool }{},
 		struct{ x chan int }{},
@@ -1052,7 +1054,7 @@ func TestIsNil(t *testing.T) {
 	NotNil(mi, t)
 
 	var ii struct {
-		x interface{}
+		x any
 	}
 	Nil(ii, t)
 	ii.x = 2
@@ -1073,7 +1075,7 @@ func TestInterfaceExtraction(t *testing.T) {
 
 	s.W = os.Stdout
 	v := Indirect(ValueOf(&s)).Field(0).Interface()
-	if v != s.W.(interface{}) {
+	if v != s.W.(any) {
 		t.Error("Interface() on interface: ", v, s.W)
 	}
 }
@@ -1565,7 +1567,7 @@ func selectWatcher() {
 // runSelect runs a single select test.
 // It returns the values returned by Select but also returns
 // a panic value if the Select panics.
-func runSelect(cases []SelectCase, info []caseInfo) (chosen int, recv Value, recvOK bool, panicErr interface{}) {
+func runSelect(cases []SelectCase, info []caseInfo) (chosen int, recv Value, recvOK bool, panicErr any) {
 	defer func() {
 		panicErr = recover()
 
@@ -1586,21 +1588,21 @@ func runSelect(cases []SelectCase, info []caseInfo) (chosen int, recv Value, rec
 // fmtSelect formats the information about a single select test.
 func fmtSelect(info []caseInfo) string {
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "\nselect {\n")
+	fmt.Fprint(&buf, "\nselect {\n")
 	for i, cas := range info {
 		fmt.Fprintf(&buf, "%d: %s", i, cas.desc)
 		if cas.recv.IsValid() {
 			fmt.Fprintf(&buf, " val=%#v", cas.recv.Interface())
 		}
 		if cas.canSelect {
-			fmt.Fprintf(&buf, " canselect")
+			fmt.Fprint(&buf, " canselect")
 		}
 		if cas.panic {
-			fmt.Fprintf(&buf, " panic")
+			fmt.Fprint(&buf, " panic")
 		}
-		fmt.Fprintf(&buf, "\n")
+		fmt.Fprint(&buf, "\n")
 	}
-	fmt.Fprintf(&buf, "}")
+	fmt.Fprint(&buf, "}")
 	return buf.String()
 }
 
@@ -1664,8 +1666,7 @@ func returnEmpty() emptyStruct {
 	return emptyStruct{}
 }
 
-func takesEmpty(e emptyStruct) {
-}
+func takesEmpty(e emptyStruct) {}
 
 func returnNonEmpty(i int) nonEmptyStruct {
 	return nonEmptyStruct{member: i}
@@ -1737,11 +1738,11 @@ func BenchmarkCallArgCopy(b *testing.B) {
 		fv  Value
 		arg Value
 	}{
-		{ValueOf(func(a [128]byte) {}), byteArray(128)},
-		{ValueOf(func(a [256]byte) {}), byteArray(256)},
-		{ValueOf(func(a [1024]byte) {}), byteArray(1024)},
-		{ValueOf(func(a [4096]byte) {}), byteArray(4096)},
-		{ValueOf(func(a [65536]byte) {}), byteArray(65536)},
+		{fv: ValueOf(func(a [128]byte) {}), arg: byteArray(128)},
+		{fv: ValueOf(func(a [256]byte) {}), arg: byteArray(256)},
+		{fv: ValueOf(func(a [1024]byte) {}), arg: byteArray(1024)},
+		{fv: ValueOf(func(a [4096]byte) {}), arg: byteArray(4096)},
+		{fv: ValueOf(func(a [65536]byte) {}), arg: byteArray(65536)},
 	}
 	for _, size := range sizes {
 		bench := func(b *testing.B) {
@@ -1844,7 +1845,7 @@ func (p Point) AnotherMethod(scale int) int {
 
 // This will be index 1.
 func (p Point) Dist(scale int) int {
-	//println("Point.Dist", p.x, p.y, scale)
+	// println("Point.Dist", p.x, p.y, scale)
 	return p.x*p.x*scale + p.y*p.y*scale
 }
 
@@ -1866,14 +1867,13 @@ func (p Point) TotalDist(points ...Point) int {
 		dx := q.x - p.x
 		dy := q.y - p.y
 		tot += dx*dx + dy*dy // Should call Sqrt, but it's just a test.
-
 	}
 	return tot
 }
 
 func TestMethod(t *testing.T) {
 	// Non-curried method of type.
-	p := Point{3, 4}
+	p := Point{x: 3, y: 4}
 	i := TypeOf(p).Method(1).Func.Call([]Value{ValueOf(p), ValueOf(10)})[0].Int()
 	if i != 250 {
 		t.Errorf("Type Method returned %d; want 250", i)
@@ -1988,7 +1988,7 @@ func TestMethod(t *testing.T) {
 }
 
 func TestMethodValue(t *testing.T) {
-	p := Point{3, 4}
+	p := Point{x: 3, y: 4}
 	var i int64
 
 	// Curried method of value.
@@ -2061,7 +2061,7 @@ func TestMethodValue(t *testing.T) {
 		X interface {
 			Dist(int) int
 		}
-	}{p}
+	}{X: p}
 	pv := ValueOf(s).Field(0)
 	v = pv.Method(0)
 	if tt := v.Type(); tt != tfunc {
@@ -2082,8 +2082,8 @@ func TestMethodValue(t *testing.T) {
 }
 
 func TestVariadicMethodValue(t *testing.T) {
-	p := Point{3, 4}
-	points := []Point{{20, 21}, {22, 23}, {24, 25}}
+	p := Point{x: 3, y: 4}
+	points := []Point{{x: 20, y: 21}, {x: 22, y: 23}, {x: 24, y: 25}}
 	want := int64(p.TotalDist(points[0], points[1], points[2]))
 
 	// Curried method of value.
@@ -2190,7 +2190,7 @@ func TestMethod5(t *testing.T) {
 
 	var TinterType = TypeOf(new(Tinter)).Elem()
 
-	CheckI := func(name string, i interface{}, inc int) {
+	CheckI := func(name string, i any, inc int) {
 		v := ValueOf(i)
 		CheckV(name, v, inc)
 		CheckV("(i="+name+")", v.Convert(TinterType), inc)
@@ -2218,9 +2218,9 @@ func TestMethod5(t *testing.T) {
 	CheckI("&bp", &bp, 15)
 
 	t4 := Tm4{}
-	t3 := Tm3{&t4}
-	t2 := Tm2{&t3}
-	t1 := Tm1{t2}
+	t3 := Tm3{Tm4: &t4}
+	t2 := Tm2{Tm3: &t3}
+	t1 := Tm1{Tm2: t2}
 	CheckI("t4", t4, 40)
 	CheckI("&t4", &t4, 40)
 	CheckI("t3", t3, 40)
@@ -2236,10 +2236,10 @@ func TestMethod5(t *testing.T) {
 }
 
 func TestInterfaceSet(t *testing.T) {
-	p := &Point{3, 4}
+	p := &Point{x: 3, y: 4}
 
 	var s struct {
-		I interface{}
+		I any
 		P interface {
 			Dist(int) int
 		}
@@ -2281,7 +2281,7 @@ func TestAnonymousFields(t *testing.T) {
 }
 
 type FTest struct {
-	s     interface{}
+	s     any
 	name  string
 	index []int
 	value int
@@ -2290,6 +2290,7 @@ type FTest struct {
 type D1 struct {
 	d int
 }
+
 type D2 struct {
 	d int
 }
@@ -2386,31 +2387,31 @@ type S16 struct {
 }
 
 var fieldTests = []FTest{
-	{struct{}{}, "", nil, 0},
-	{struct{}{}, "Foo", nil, 0},
-	{S0{A: 'a'}, "A", []int{0}, 'a'},
-	{S0{}, "D", nil, 0},
-	{S1{S0: S0{A: 'a'}}, "A", []int{1, 0}, 'a'},
-	{S1{B: 'b'}, "B", []int{0}, 'b'},
-	{S1{}, "S0", []int{1}, 0},
-	{S1{S0: S0{C: 'c'}}, "C", []int{1, 2}, 'c'},
-	{S2{A: 'a'}, "A", []int{0}, 'a'},
-	{S2{}, "S1", []int{1}, 0},
-	{S2{S1: &S1{B: 'b'}}, "B", []int{1, 0}, 'b'},
-	{S2{S1: &S1{S0: S0{C: 'c'}}}, "C", []int{1, 1, 2}, 'c'},
-	{S2{}, "D", nil, 0},
-	{S3{}, "S1", nil, 0},
-	{S3{S2: S2{A: 'a'}}, "A", []int{1, 0}, 'a'},
-	{S3{}, "B", nil, 0},
-	{S3{D: 'd'}, "D", []int{2}, 0},
-	{S3{E: 'e'}, "E", []int{3}, 'e'},
-	{S4{A: 'a'}, "A", []int{1}, 'a'},
-	{S4{}, "B", nil, 0},
-	{S5{}, "X", nil, 0},
-	{S5{}, "Y", []int{2, 0, 1}, 0},
-	{S10{}, "X", nil, 0},
-	{S10{}, "Y", []int{2, 0, 0, 1}, 0},
-	{S14{}, "X", nil, 0},
+	{s: struct{}{}, name: "", index: nil, value: 0},
+	{s: struct{}{}, name: "Foo", index: nil, value: 0},
+	{s: S0{A: 'a'}, name: "A", index: []int{0}, value: 'a'},
+	{s: S0{}, name: "D", index: nil, value: 0},
+	{s: S1{S0: S0{A: 'a'}}, name: "A", index: []int{1, 0}, value: 'a'},
+	{s: S1{B: 'b'}, name: "B", index: []int{0}, value: 'b'},
+	{s: S1{}, name: "S0", index: []int{1}, value: 0},
+	{s: S1{S0: S0{C: 'c'}}, name: "C", index: []int{1, 2}, value: 'c'},
+	{s: S2{A: 'a'}, name: "A", index: []int{0}, value: 'a'},
+	{s: S2{}, name: "S1", index: []int{1}, value: 0},
+	{s: S2{S1: &S1{B: 'b'}}, name: "B", index: []int{1, 0}, value: 'b'},
+	{s: S2{S1: &S1{S0: S0{C: 'c'}}}, name: "C", index: []int{1, 1, 2}, value: 'c'},
+	{s: S2{}, name: "D", index: nil, value: 0},
+	{s: S3{}, name: "S1", index: nil, value: 0},
+	{s: S3{S2: S2{A: 'a'}}, name: "A", index: []int{1, 0}, value: 'a'},
+	{s: S3{}, name: "B", index: nil, value: 0},
+	{s: S3{D: 'd'}, name: "D", index: []int{2}, value: 0},
+	{s: S3{E: 'e'}, name: "E", index: []int{3}, value: 'e'},
+	{s: S4{A: 'a'}, name: "A", index: []int{1}, value: 'a'},
+	{s: S4{}, name: "B", index: nil, value: 0},
+	{s: S5{}, name: "X", index: nil, value: 0},
+	{s: S5{}, name: "Y", index: []int{2, 0, 1}, value: 0},
+	{s: S10{}, name: "X", index: nil, value: 0},
+	{s: S10{}, name: "Y", index: []int{2, 0, 0, 1}, value: 0},
+	{s: S14{}, name: "X", index: nil, value: 0},
 }
 
 func TestFieldByIndex(t *testing.T) {
@@ -2491,35 +2492,35 @@ func TestImportPath(t *testing.T) {
 		t    Type
 		path string
 	}{
-		{TypeOf(&base64.Encoding{}).Elem(), "encoding/base64"},
-		{TypeOf(int(0)), ""},
-		{TypeOf(int8(0)), ""},
-		{TypeOf(int16(0)), ""},
-		{TypeOf(int32(0)), ""},
-		{TypeOf(int64(0)), ""},
-		{TypeOf(uint(0)), ""},
-		{TypeOf(uint8(0)), ""},
-		{TypeOf(uint16(0)), ""},
-		{TypeOf(uint32(0)), ""},
-		{TypeOf(uint64(0)), ""},
-		{TypeOf(uintptr(0)), ""},
-		{TypeOf(float32(0)), ""},
-		{TypeOf(float64(0)), ""},
-		{TypeOf(complex64(0)), ""},
-		{TypeOf(complex128(0)), ""},
-		{TypeOf(byte(0)), ""},
-		{TypeOf(rune(0)), ""},
-		{TypeOf([]byte(nil)), ""},
-		{TypeOf([]rune(nil)), ""},
-		{TypeOf(string("")), ""},
-		{TypeOf((*interface{})(nil)).Elem(), ""},
-		{TypeOf((*byte)(nil)), ""},
-		{TypeOf((*rune)(nil)), ""},
-		{TypeOf((*int64)(nil)), ""},
-		{TypeOf(map[string]int{}), ""},
-		{TypeOf((*error)(nil)).Elem(), ""},
-		{TypeOf((*Point)(nil)), ""},
-		{TypeOf((*Point)(nil)).Elem(), "github.com/goccy/go-reflect_test"},
+		{t: TypeOf(&base64.Encoding{}).Elem(), path: "encoding/base64"},
+		{t: TypeOf(int(0)), path: ""},
+		{t: TypeOf(int8(0)), path: ""},
+		{t: TypeOf(int16(0)), path: ""},
+		{t: TypeOf(int32(0)), path: ""},
+		{t: TypeOf(int64(0)), path: ""},
+		{t: TypeOf(uint(0)), path: ""},
+		{t: TypeOf(uint8(0)), path: ""},
+		{t: TypeOf(uint16(0)), path: ""},
+		{t: TypeOf(uint32(0)), path: ""},
+		{t: TypeOf(uint64(0)), path: ""},
+		{t: TypeOf(uintptr(0)), path: ""},
+		{t: TypeOf(float32(0)), path: ""},
+		{t: TypeOf(float64(0)), path: ""},
+		{t: TypeOf(complex64(0)), path: ""},
+		{t: TypeOf(complex128(0)), path: ""},
+		{t: TypeOf(byte(0)), path: ""},
+		{t: TypeOf(rune(0)), path: ""},
+		{t: TypeOf([]byte(nil)), path: ""},
+		{t: TypeOf([]rune(nil)), path: ""},
+		{t: TypeOf(string("")), path: ""},
+		{t: TypeOf((*any)(nil)).Elem(), path: ""},
+		{t: TypeOf((*byte)(nil)), path: ""},
+		{t: TypeOf((*rune)(nil)), path: ""},
+		{t: TypeOf((*int64)(nil)), path: ""},
+		{t: TypeOf(map[string]int{}), path: ""},
+		{t: TypeOf((*error)(nil)).Elem(), path: ""},
+		{t: TypeOf((*Point)(nil)), path: ""},
+		{t: TypeOf((*Point)(nil)).Elem(), path: "github.com/goccy/go-reflect_test"},
 	}
 	for _, test := range tests {
 		if path := test.t.PkgPath(); path != test.path {
@@ -2561,6 +2562,7 @@ type outer struct {
 }
 
 func (*inner) M() {}
+
 func (*outer) M() {}
 
 func TestNestedMethods(t *testing.T) {
@@ -2577,6 +2579,7 @@ func TestNestedMethods(t *testing.T) {
 type unexp struct{}
 
 func (*unexp) f() (int32, int8) { return 7, 7 }
+
 func (*unexp) g() (int64, int8) { return 8, 8 }
 
 type unexpI interface {
@@ -2616,12 +2619,12 @@ func TestEmbeddedMethods(t *testing.T) {
 		}
 	}
 
-	i := &InnerInt{3}
+	i := &InnerInt{X: 3}
 	if v := ValueOf(i).Method(0).Call(nil)[0].Int(); v != 3 {
 		t.Errorf("i.M() = %d, want 3", v)
 	}
 
-	o := &OuterInt{1, InnerInt{2}}
+	o := &OuterInt{Y: 1, InnerInt: InnerInt{X: 2}}
 	if v := ValueOf(o).Method(0).Call(nil)[0].Int(); v != 2 {
 		t.Errorf("i.M() = %d, want 2", v)
 	}
@@ -2632,7 +2635,7 @@ func TestEmbeddedMethods(t *testing.T) {
 	}
 }
 
-type FuncDDD func(...interface{}) error
+type FuncDDD func(...any) error
 
 func (f FuncDDD) M() {}
 
@@ -2670,7 +2673,7 @@ func TestPtrToGC(t *testing.T) {
 	tt := TypeOf(T(nil))
 	pt := PtrTo(tt)
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := New(pt)
 		p := new(*uintptr)
@@ -2792,7 +2795,7 @@ func noAlloc(t *testing.T, n int, f func(int)) {
 
 func TestAllocations(t *testing.T) {
 	noAlloc(t, 100, func(j int) {
-		var i interface{}
+		var i any
 		var v Value
 
 		// We can uncomment this when compiler escape analysis
@@ -2966,7 +2969,7 @@ func TestVariadic(t *testing.T) {
 	}
 
 	b.Reset()
-	V(fmt.Fprintf).CallSlice([]Value{V(&b), V("%s, %d world"), V([]interface{}{"hello", 42})})
+	V(fmt.Fprintf).CallSlice([]Value{V(&b), V("%s, %d world"), V([]any{"hello", 42})})
 	if b.String() != "hello, 42 world" {
 		t.Errorf("after Fprintf CallSlice: %q != %q", b.String(), "hello 42 world")
 	}
@@ -2989,7 +2992,7 @@ func TestStructArg(t *testing.T) {
 	var (
 		gotA  padded
 		gotB  uint32
-		wantA = padded{"3", 4}
+		wantA = padded{B: "3", C: 4}
 		wantB = uint32(5)
 	)
 	f := func(a padded, b uint32) {
@@ -3006,13 +3009,13 @@ var tagGetTests = []struct {
 	Key   string
 	Value string
 }{
-	{`protobuf:"PB(1,2)"`, `protobuf`, `PB(1,2)`},
-	{`protobuf:"PB(1,2)"`, `foo`, ``},
-	{`protobuf:"PB(1,2)"`, `rotobuf`, ``},
-	{`protobuf:"PB(1,2)" json:"name"`, `json`, `name`},
-	{`protobuf:"PB(1,2)" json:"name"`, `protobuf`, `PB(1,2)`},
-	{`k0:"values contain spaces" k1:"and\ttabs"`, "k0", "values contain spaces"},
-	{`k0:"values contain spaces" k1:"and\ttabs"`, "k1", "and\ttabs"},
+	{Tag: `protobuf:"PB(1,2)"`, Key: `protobuf`, Value: `PB(1,2)`},
+	{Tag: `protobuf:"PB(1,2)"`, Key: `foo`, Value: ``},
+	{Tag: `protobuf:"PB(1,2)"`, Key: `rotobuf`, Value: ``},
+	{Tag: `protobuf:"PB(1,2)" json:"name"`, Key: `json`, Value: `name`},
+	{Tag: `protobuf:"PB(1,2)" json:"name"`, Key: `protobuf`, Value: `PB(1,2)`},
+	{Tag: `k0:"values contain spaces" k1:"and\ttabs"`, Key: "k0", Value: "values contain spaces"},
+	{Tag: `k0:"values contain spaces" k1:"and\ttabs"`, Key: "k1", Value: "and\ttabs"},
 }
 
 func TestTagGet(t *testing.T) {
@@ -3054,8 +3057,7 @@ type Private struct {
 	Z int
 }
 
-func (p *Private) m() {
-}
+func (p *Private) m() {}
 
 type private struct {
 	Z int
@@ -3065,8 +3067,7 @@ type private struct {
 	T []Private
 }
 
-func (p *private) P() {
-}
+func (p *private) P() {}
 
 type Public struct {
 	X int
@@ -3074,8 +3075,7 @@ type Public struct {
 	private
 }
 
-func (p *Public) M() {
-}
+func (p *Public) M() {}
 
 func TestUnexported(t *testing.T) {
 	var pub Public
@@ -3206,8 +3206,11 @@ func TestSetPanic(t *testing.T) {
 type timp int
 
 func (t timp) W() {}
+
 func (t timp) Y() {}
+
 func (t timp) w() {}
+
 func (t timp) y() {}
 
 func TestCallPanic(t *testing.T) {
@@ -3240,11 +3243,11 @@ func TestCallPanic(t *testing.T) {
 	call := func(v Value) { v.Call(nil) }
 
 	i := timp(0)
-	v := ValueOf(T{i, i, i, i, T2{i, i}, i, i, T2{i, i}})
-	//ok(func() { call(v.Field(0).Method(0)) })         // .t0.W
-	//bad(func() { call(v.Field(0).Elem().Method(0)) }) // .t0.W
-	//bad(func() { call(v.Field(0).Method(1)) })        // .t0.w
-	//bad(func() { call(v.Field(0).Elem().Method(2)) }) // .t0.w
+	v := ValueOf(T{t0: i, T1: i, NamedT0: i, NamedT1: i, NamedT2: T2{T1: i, t0: i}, namedT0: i, namedT1: i, namedT2: T2{T1: i, t0: i}})
+	// ok(func() { call(v.Field(0).Method(0)) })         // .t0.W
+	// bad(func() { call(v.Field(0).Elem().Method(0)) }) // .t0.W
+	// bad(func() { call(v.Field(0).Method(1)) })        // .t0.w
+	// bad(func() { call(v.Field(0).Elem().Method(2)) }) // .t0.w
 	ok(func() { call(v.Field(1).Method(0)) })         // .T1.Y
 	ok(func() { call(v.Field(1).Elem().Method(0)) })  // .T1.Y
 	bad(func() { call(v.Field(1).Method(1)) })        // .T1.y
@@ -3262,8 +3265,8 @@ func TestCallPanic(t *testing.T) {
 
 	ok(func() { call(v.Field(4).Field(0).Method(0)) })        // .NamedT2.T1.Y
 	ok(func() { call(v.Field(4).Field(0).Elem().Method(0)) }) // .NamedT2.T1.W
-	//ok(func() { call(v.Field(4).Field(1).Method(0)) })         // .NamedT2.t0.W
-	//bad(func() { call(v.Field(4).Field(1).Elem().Method(0)) }) // .NamedT2.t0.W
+	// ok(func() { call(v.Field(4).Field(1).Method(0)) })         // .NamedT2.t0.W
+	// bad(func() { call(v.Field(4).Field(1).Elem().Method(0)) }) // .NamedT2.t0.W
 
 	bad(func() { call(v.Field(5).Method(0)) })        // .namedT0.W
 	bad(func() { call(v.Field(5).Elem().Method(0)) }) // .namedT0.W
@@ -3277,8 +3280,8 @@ func TestCallPanic(t *testing.T) {
 
 	bad(func() { call(v.Field(7).Field(0).Method(0)) })        // .namedT2.T1.Y
 	bad(func() { call(v.Field(7).Field(0).Elem().Method(0)) }) // .namedT2.T1.W
-	//bad(func() { call(v.Field(7).Field(1).Method(0)) })        // .namedT2.t0.W
-	//bad(func() { call(v.Field(7).Field(1).Elem().Method(0)) }) // .namedT2.t0.W
+	// bad(func() { call(v.Field(7).Field(1).Method(0)) })        // .namedT2.t0.W
+	// bad(func() { call(v.Field(7).Field(1).Elem().Method(0)) }) // .namedT2.t0.W
 }
 
 func shouldPanic(f func()) {
@@ -3290,7 +3293,7 @@ func shouldPanic(f func()) {
 	f()
 }
 
-func isNonNil(x interface{}) {
+func isNonNil(x any) {
 	if x == nil {
 		panic("nil interface")
 	}
@@ -3316,7 +3319,7 @@ func TestAlias(t *testing.T) {
 
 var V = ValueOf
 
-func EmptyInterfaceV(x interface{}) Value {
+func EmptyInterfaceV(x any) Value {
 	return ValueOf(&x).Elem()
 }
 
@@ -3329,13 +3332,19 @@ func ReadWriterV(x io.ReadWriter) Value {
 }
 
 type Empty struct{}
+
 type MyStruct struct {
 	x int `some:"tag"`
 }
+
 type MyString string
+
 type MyBytes []byte
+
 type MyRunes []int32
+
 type MyFunc func()
+
 type MyByte byte
 
 var convertTests = []struct {
@@ -3374,352 +3383,352 @@ var convertTests = []struct {
 			}
 		}
 	*/
-	{V(int8(1)), V(int8(1))},
-	{V(int8(2)), V(uint8(2))},
-	{V(uint8(3)), V(int8(3))},
-	{V(int8(4)), V(int16(4))},
-	{V(int16(5)), V(int8(5))},
-	{V(int8(6)), V(uint16(6))},
-	{V(uint16(7)), V(int8(7))},
-	{V(int8(8)), V(int32(8))},
-	{V(int32(9)), V(int8(9))},
-	{V(int8(10)), V(uint32(10))},
-	{V(uint32(11)), V(int8(11))},
-	{V(int8(12)), V(int64(12))},
-	{V(int64(13)), V(int8(13))},
-	{V(int8(14)), V(uint64(14))},
-	{V(uint64(15)), V(int8(15))},
-	{V(int8(16)), V(int(16))},
-	{V(int(17)), V(int8(17))},
-	{V(int8(18)), V(uint(18))},
-	{V(uint(19)), V(int8(19))},
-	{V(int8(20)), V(uintptr(20))},
-	{V(uintptr(21)), V(int8(21))},
-	{V(int8(22)), V(float32(22))},
-	{V(float32(23)), V(int8(23))},
-	{V(int8(24)), V(float64(24))},
-	{V(float64(25)), V(int8(25))},
-	{V(uint8(26)), V(uint8(26))},
-	{V(uint8(27)), V(int16(27))},
-	{V(int16(28)), V(uint8(28))},
-	{V(uint8(29)), V(uint16(29))},
-	{V(uint16(30)), V(uint8(30))},
-	{V(uint8(31)), V(int32(31))},
-	{V(int32(32)), V(uint8(32))},
-	{V(uint8(33)), V(uint32(33))},
-	{V(uint32(34)), V(uint8(34))},
-	{V(uint8(35)), V(int64(35))},
-	{V(int64(36)), V(uint8(36))},
-	{V(uint8(37)), V(uint64(37))},
-	{V(uint64(38)), V(uint8(38))},
-	{V(uint8(39)), V(int(39))},
-	{V(int(40)), V(uint8(40))},
-	{V(uint8(41)), V(uint(41))},
-	{V(uint(42)), V(uint8(42))},
-	{V(uint8(43)), V(uintptr(43))},
-	{V(uintptr(44)), V(uint8(44))},
-	{V(uint8(45)), V(float32(45))},
-	{V(float32(46)), V(uint8(46))},
-	{V(uint8(47)), V(float64(47))},
-	{V(float64(48)), V(uint8(48))},
-	{V(int16(49)), V(int16(49))},
-	{V(int16(50)), V(uint16(50))},
-	{V(uint16(51)), V(int16(51))},
-	{V(int16(52)), V(int32(52))},
-	{V(int32(53)), V(int16(53))},
-	{V(int16(54)), V(uint32(54))},
-	{V(uint32(55)), V(int16(55))},
-	{V(int16(56)), V(int64(56))},
-	{V(int64(57)), V(int16(57))},
-	{V(int16(58)), V(uint64(58))},
-	{V(uint64(59)), V(int16(59))},
-	{V(int16(60)), V(int(60))},
-	{V(int(61)), V(int16(61))},
-	{V(int16(62)), V(uint(62))},
-	{V(uint(63)), V(int16(63))},
-	{V(int16(64)), V(uintptr(64))},
-	{V(uintptr(65)), V(int16(65))},
-	{V(int16(66)), V(float32(66))},
-	{V(float32(67)), V(int16(67))},
-	{V(int16(68)), V(float64(68))},
-	{V(float64(69)), V(int16(69))},
-	{V(uint16(70)), V(uint16(70))},
-	{V(uint16(71)), V(int32(71))},
-	{V(int32(72)), V(uint16(72))},
-	{V(uint16(73)), V(uint32(73))},
-	{V(uint32(74)), V(uint16(74))},
-	{V(uint16(75)), V(int64(75))},
-	{V(int64(76)), V(uint16(76))},
-	{V(uint16(77)), V(uint64(77))},
-	{V(uint64(78)), V(uint16(78))},
-	{V(uint16(79)), V(int(79))},
-	{V(int(80)), V(uint16(80))},
-	{V(uint16(81)), V(uint(81))},
-	{V(uint(82)), V(uint16(82))},
-	{V(uint16(83)), V(uintptr(83))},
-	{V(uintptr(84)), V(uint16(84))},
-	{V(uint16(85)), V(float32(85))},
-	{V(float32(86)), V(uint16(86))},
-	{V(uint16(87)), V(float64(87))},
-	{V(float64(88)), V(uint16(88))},
-	{V(int32(89)), V(int32(89))},
-	{V(int32(90)), V(uint32(90))},
-	{V(uint32(91)), V(int32(91))},
-	{V(int32(92)), V(int64(92))},
-	{V(int64(93)), V(int32(93))},
-	{V(int32(94)), V(uint64(94))},
-	{V(uint64(95)), V(int32(95))},
-	{V(int32(96)), V(int(96))},
-	{V(int(97)), V(int32(97))},
-	{V(int32(98)), V(uint(98))},
-	{V(uint(99)), V(int32(99))},
-	{V(int32(100)), V(uintptr(100))},
-	{V(uintptr(101)), V(int32(101))},
-	{V(int32(102)), V(float32(102))},
-	{V(float32(103)), V(int32(103))},
-	{V(int32(104)), V(float64(104))},
-	{V(float64(105)), V(int32(105))},
-	{V(uint32(106)), V(uint32(106))},
-	{V(uint32(107)), V(int64(107))},
-	{V(int64(108)), V(uint32(108))},
-	{V(uint32(109)), V(uint64(109))},
-	{V(uint64(110)), V(uint32(110))},
-	{V(uint32(111)), V(int(111))},
-	{V(int(112)), V(uint32(112))},
-	{V(uint32(113)), V(uint(113))},
-	{V(uint(114)), V(uint32(114))},
-	{V(uint32(115)), V(uintptr(115))},
-	{V(uintptr(116)), V(uint32(116))},
-	{V(uint32(117)), V(float32(117))},
-	{V(float32(118)), V(uint32(118))},
-	{V(uint32(119)), V(float64(119))},
-	{V(float64(120)), V(uint32(120))},
-	{V(int64(121)), V(int64(121))},
-	{V(int64(122)), V(uint64(122))},
-	{V(uint64(123)), V(int64(123))},
-	{V(int64(124)), V(int(124))},
-	{V(int(125)), V(int64(125))},
-	{V(int64(126)), V(uint(126))},
-	{V(uint(127)), V(int64(127))},
-	{V(int64(128)), V(uintptr(128))},
-	{V(uintptr(129)), V(int64(129))},
-	{V(int64(130)), V(float32(130))},
-	{V(float32(131)), V(int64(131))},
-	{V(int64(132)), V(float64(132))},
-	{V(float64(133)), V(int64(133))},
-	{V(uint64(134)), V(uint64(134))},
-	{V(uint64(135)), V(int(135))},
-	{V(int(136)), V(uint64(136))},
-	{V(uint64(137)), V(uint(137))},
-	{V(uint(138)), V(uint64(138))},
-	{V(uint64(139)), V(uintptr(139))},
-	{V(uintptr(140)), V(uint64(140))},
-	{V(uint64(141)), V(float32(141))},
-	{V(float32(142)), V(uint64(142))},
-	{V(uint64(143)), V(float64(143))},
-	{V(float64(144)), V(uint64(144))},
-	{V(int(145)), V(int(145))},
-	{V(int(146)), V(uint(146))},
-	{V(uint(147)), V(int(147))},
-	{V(int(148)), V(uintptr(148))},
-	{V(uintptr(149)), V(int(149))},
-	{V(int(150)), V(float32(150))},
-	{V(float32(151)), V(int(151))},
-	{V(int(152)), V(float64(152))},
-	{V(float64(153)), V(int(153))},
-	{V(uint(154)), V(uint(154))},
-	{V(uint(155)), V(uintptr(155))},
-	{V(uintptr(156)), V(uint(156))},
-	{V(uint(157)), V(float32(157))},
-	{V(float32(158)), V(uint(158))},
-	{V(uint(159)), V(float64(159))},
-	{V(float64(160)), V(uint(160))},
-	{V(uintptr(161)), V(uintptr(161))},
-	{V(uintptr(162)), V(float32(162))},
-	{V(float32(163)), V(uintptr(163))},
-	{V(uintptr(164)), V(float64(164))},
-	{V(float64(165)), V(uintptr(165))},
-	{V(float32(166)), V(float32(166))},
-	{V(float32(167)), V(float64(167))},
-	{V(float64(168)), V(float32(168))},
-	{V(float64(169)), V(float64(169))},
+	{in: V(int8(1)), out: V(int8(1))},
+	{in: V(int8(2)), out: V(uint8(2))},
+	{in: V(uint8(3)), out: V(int8(3))},
+	{in: V(int8(4)), out: V(int16(4))},
+	{in: V(int16(5)), out: V(int8(5))},
+	{in: V(int8(6)), out: V(uint16(6))},
+	{in: V(uint16(7)), out: V(int8(7))},
+	{in: V(int8(8)), out: V(int32(8))},
+	{in: V(int32(9)), out: V(int8(9))},
+	{in: V(int8(10)), out: V(uint32(10))},
+	{in: V(uint32(11)), out: V(int8(11))},
+	{in: V(int8(12)), out: V(int64(12))},
+	{in: V(int64(13)), out: V(int8(13))},
+	{in: V(int8(14)), out: V(uint64(14))},
+	{in: V(uint64(15)), out: V(int8(15))},
+	{in: V(int8(16)), out: V(int(16))},
+	{in: V(int(17)), out: V(int8(17))},
+	{in: V(int8(18)), out: V(uint(18))},
+	{in: V(uint(19)), out: V(int8(19))},
+	{in: V(int8(20)), out: V(uintptr(20))},
+	{in: V(uintptr(21)), out: V(int8(21))},
+	{in: V(int8(22)), out: V(float32(22))},
+	{in: V(float32(23)), out: V(int8(23))},
+	{in: V(int8(24)), out: V(float64(24))},
+	{in: V(float64(25)), out: V(int8(25))},
+	{in: V(uint8(26)), out: V(uint8(26))},
+	{in: V(uint8(27)), out: V(int16(27))},
+	{in: V(int16(28)), out: V(uint8(28))},
+	{in: V(uint8(29)), out: V(uint16(29))},
+	{in: V(uint16(30)), out: V(uint8(30))},
+	{in: V(uint8(31)), out: V(int32(31))},
+	{in: V(int32(32)), out: V(uint8(32))},
+	{in: V(uint8(33)), out: V(uint32(33))},
+	{in: V(uint32(34)), out: V(uint8(34))},
+	{in: V(uint8(35)), out: V(int64(35))},
+	{in: V(int64(36)), out: V(uint8(36))},
+	{in: V(uint8(37)), out: V(uint64(37))},
+	{in: V(uint64(38)), out: V(uint8(38))},
+	{in: V(uint8(39)), out: V(int(39))},
+	{in: V(int(40)), out: V(uint8(40))},
+	{in: V(uint8(41)), out: V(uint(41))},
+	{in: V(uint(42)), out: V(uint8(42))},
+	{in: V(uint8(43)), out: V(uintptr(43))},
+	{in: V(uintptr(44)), out: V(uint8(44))},
+	{in: V(uint8(45)), out: V(float32(45))},
+	{in: V(float32(46)), out: V(uint8(46))},
+	{in: V(uint8(47)), out: V(float64(47))},
+	{in: V(float64(48)), out: V(uint8(48))},
+	{in: V(int16(49)), out: V(int16(49))},
+	{in: V(int16(50)), out: V(uint16(50))},
+	{in: V(uint16(51)), out: V(int16(51))},
+	{in: V(int16(52)), out: V(int32(52))},
+	{in: V(int32(53)), out: V(int16(53))},
+	{in: V(int16(54)), out: V(uint32(54))},
+	{in: V(uint32(55)), out: V(int16(55))},
+	{in: V(int16(56)), out: V(int64(56))},
+	{in: V(int64(57)), out: V(int16(57))},
+	{in: V(int16(58)), out: V(uint64(58))},
+	{in: V(uint64(59)), out: V(int16(59))},
+	{in: V(int16(60)), out: V(int(60))},
+	{in: V(int(61)), out: V(int16(61))},
+	{in: V(int16(62)), out: V(uint(62))},
+	{in: V(uint(63)), out: V(int16(63))},
+	{in: V(int16(64)), out: V(uintptr(64))},
+	{in: V(uintptr(65)), out: V(int16(65))},
+	{in: V(int16(66)), out: V(float32(66))},
+	{in: V(float32(67)), out: V(int16(67))},
+	{in: V(int16(68)), out: V(float64(68))},
+	{in: V(float64(69)), out: V(int16(69))},
+	{in: V(uint16(70)), out: V(uint16(70))},
+	{in: V(uint16(71)), out: V(int32(71))},
+	{in: V(int32(72)), out: V(uint16(72))},
+	{in: V(uint16(73)), out: V(uint32(73))},
+	{in: V(uint32(74)), out: V(uint16(74))},
+	{in: V(uint16(75)), out: V(int64(75))},
+	{in: V(int64(76)), out: V(uint16(76))},
+	{in: V(uint16(77)), out: V(uint64(77))},
+	{in: V(uint64(78)), out: V(uint16(78))},
+	{in: V(uint16(79)), out: V(int(79))},
+	{in: V(int(80)), out: V(uint16(80))},
+	{in: V(uint16(81)), out: V(uint(81))},
+	{in: V(uint(82)), out: V(uint16(82))},
+	{in: V(uint16(83)), out: V(uintptr(83))},
+	{in: V(uintptr(84)), out: V(uint16(84))},
+	{in: V(uint16(85)), out: V(float32(85))},
+	{in: V(float32(86)), out: V(uint16(86))},
+	{in: V(uint16(87)), out: V(float64(87))},
+	{in: V(float64(88)), out: V(uint16(88))},
+	{in: V(int32(89)), out: V(int32(89))},
+	{in: V(int32(90)), out: V(uint32(90))},
+	{in: V(uint32(91)), out: V(int32(91))},
+	{in: V(int32(92)), out: V(int64(92))},
+	{in: V(int64(93)), out: V(int32(93))},
+	{in: V(int32(94)), out: V(uint64(94))},
+	{in: V(uint64(95)), out: V(int32(95))},
+	{in: V(int32(96)), out: V(int(96))},
+	{in: V(int(97)), out: V(int32(97))},
+	{in: V(int32(98)), out: V(uint(98))},
+	{in: V(uint(99)), out: V(int32(99))},
+	{in: V(int32(100)), out: V(uintptr(100))},
+	{in: V(uintptr(101)), out: V(int32(101))},
+	{in: V(int32(102)), out: V(float32(102))},
+	{in: V(float32(103)), out: V(int32(103))},
+	{in: V(int32(104)), out: V(float64(104))},
+	{in: V(float64(105)), out: V(int32(105))},
+	{in: V(uint32(106)), out: V(uint32(106))},
+	{in: V(uint32(107)), out: V(int64(107))},
+	{in: V(int64(108)), out: V(uint32(108))},
+	{in: V(uint32(109)), out: V(uint64(109))},
+	{in: V(uint64(110)), out: V(uint32(110))},
+	{in: V(uint32(111)), out: V(int(111))},
+	{in: V(int(112)), out: V(uint32(112))},
+	{in: V(uint32(113)), out: V(uint(113))},
+	{in: V(uint(114)), out: V(uint32(114))},
+	{in: V(uint32(115)), out: V(uintptr(115))},
+	{in: V(uintptr(116)), out: V(uint32(116))},
+	{in: V(uint32(117)), out: V(float32(117))},
+	{in: V(float32(118)), out: V(uint32(118))},
+	{in: V(uint32(119)), out: V(float64(119))},
+	{in: V(float64(120)), out: V(uint32(120))},
+	{in: V(int64(121)), out: V(int64(121))},
+	{in: V(int64(122)), out: V(uint64(122))},
+	{in: V(uint64(123)), out: V(int64(123))},
+	{in: V(int64(124)), out: V(int(124))},
+	{in: V(int(125)), out: V(int64(125))},
+	{in: V(int64(126)), out: V(uint(126))},
+	{in: V(uint(127)), out: V(int64(127))},
+	{in: V(int64(128)), out: V(uintptr(128))},
+	{in: V(uintptr(129)), out: V(int64(129))},
+	{in: V(int64(130)), out: V(float32(130))},
+	{in: V(float32(131)), out: V(int64(131))},
+	{in: V(int64(132)), out: V(float64(132))},
+	{in: V(float64(133)), out: V(int64(133))},
+	{in: V(uint64(134)), out: V(uint64(134))},
+	{in: V(uint64(135)), out: V(int(135))},
+	{in: V(int(136)), out: V(uint64(136))},
+	{in: V(uint64(137)), out: V(uint(137))},
+	{in: V(uint(138)), out: V(uint64(138))},
+	{in: V(uint64(139)), out: V(uintptr(139))},
+	{in: V(uintptr(140)), out: V(uint64(140))},
+	{in: V(uint64(141)), out: V(float32(141))},
+	{in: V(float32(142)), out: V(uint64(142))},
+	{in: V(uint64(143)), out: V(float64(143))},
+	{in: V(float64(144)), out: V(uint64(144))},
+	{in: V(int(145)), out: V(int(145))},
+	{in: V(int(146)), out: V(uint(146))},
+	{in: V(uint(147)), out: V(int(147))},
+	{in: V(int(148)), out: V(uintptr(148))},
+	{in: V(uintptr(149)), out: V(int(149))},
+	{in: V(int(150)), out: V(float32(150))},
+	{in: V(float32(151)), out: V(int(151))},
+	{in: V(int(152)), out: V(float64(152))},
+	{in: V(float64(153)), out: V(int(153))},
+	{in: V(uint(154)), out: V(uint(154))},
+	{in: V(uint(155)), out: V(uintptr(155))},
+	{in: V(uintptr(156)), out: V(uint(156))},
+	{in: V(uint(157)), out: V(float32(157))},
+	{in: V(float32(158)), out: V(uint(158))},
+	{in: V(uint(159)), out: V(float64(159))},
+	{in: V(float64(160)), out: V(uint(160))},
+	{in: V(uintptr(161)), out: V(uintptr(161))},
+	{in: V(uintptr(162)), out: V(float32(162))},
+	{in: V(float32(163)), out: V(uintptr(163))},
+	{in: V(uintptr(164)), out: V(float64(164))},
+	{in: V(float64(165)), out: V(uintptr(165))},
+	{in: V(float32(166)), out: V(float32(166))},
+	{in: V(float32(167)), out: V(float64(167))},
+	{in: V(float64(168)), out: V(float32(168))},
+	{in: V(float64(169)), out: V(float64(169))},
 
 	// truncation
-	{V(float64(1.5)), V(int(1))},
+	{in: V(float64(1.5)), out: V(int(1))},
 
 	// complex
-	{V(complex64(1i)), V(complex64(1i))},
-	{V(complex64(2i)), V(complex128(2i))},
-	{V(complex128(3i)), V(complex64(3i))},
-	{V(complex128(4i)), V(complex128(4i))},
+	{in: V(complex64(1i)), out: V(complex64(1i))},
+	{in: V(complex64(2i)), out: V(complex128(2i))},
+	{in: V(complex128(3i)), out: V(complex64(3i))},
+	{in: V(complex128(4i)), out: V(complex128(4i))},
 
 	// string
-	{V(string("hello")), V(string("hello"))},
-	{V(string("bytes1")), V([]byte("bytes1"))},
-	{V([]byte("bytes2")), V(string("bytes2"))},
-	{V([]byte("bytes3")), V([]byte("bytes3"))},
-	{V(string("runes♝")), V([]rune("runes♝"))},
-	{V([]rune("runes♕")), V(string("runes♕"))},
-	{V([]rune("runes🙈🙉🙊")), V([]rune("runes🙈🙉🙊"))},
-	{V(int('a')), V(string("a"))},
-	{V(int8('a')), V(string("a"))},
-	{V(int16('a')), V(string("a"))},
-	{V(int32('a')), V(string("a"))},
-	{V(int64('a')), V(string("a"))},
-	{V(uint('a')), V(string("a"))},
-	{V(uint8('a')), V(string("a"))},
-	{V(uint16('a')), V(string("a"))},
-	{V(uint32('a')), V(string("a"))},
-	{V(uint64('a')), V(string("a"))},
-	{V(uintptr('a')), V(string("a"))},
-	{V(int(-1)), V(string("\uFFFD"))},
-	{V(int8(-2)), V(string("\uFFFD"))},
-	{V(int16(-3)), V(string("\uFFFD"))},
-	{V(int32(-4)), V(string("\uFFFD"))},
-	{V(int64(-5)), V(string("\uFFFD"))},
-	{V(uint(0x110001)), V(string("\uFFFD"))},
-	{V(uint32(0x110002)), V(string("\uFFFD"))},
-	{V(uint64(0x110003)), V(string("\uFFFD"))},
-	{V(uintptr(0x110004)), V(string("\uFFFD"))},
+	{in: V(string("hello")), out: V(string("hello"))},
+	{in: V(string("bytes1")), out: V([]byte("bytes1"))},
+	{in: V([]byte("bytes2")), out: V(string("bytes2"))},
+	{in: V([]byte("bytes3")), out: V([]byte("bytes3"))},
+	{in: V(string("runes♝")), out: V([]rune("runes♝"))},
+	{in: V([]rune("runes♕")), out: V(string("runes♕"))},
+	{in: V([]rune("runes🙈🙉🙊")), out: V([]rune("runes🙈🙉🙊"))},
+	{in: V(int('a')), out: V(string("a"))},
+	{in: V(int8('a')), out: V(string("a"))},
+	{in: V(int16('a')), out: V(string("a"))},
+	{in: V(int32('a')), out: V(string("a"))},
+	{in: V(int64('a')), out: V(string("a"))},
+	{in: V(uint('a')), out: V(string("a"))},
+	{in: V(uint8('a')), out: V(string("a"))},
+	{in: V(uint16('a')), out: V(string("a"))},
+	{in: V(uint32('a')), out: V(string("a"))},
+	{in: V(uint64('a')), out: V(string("a"))},
+	{in: V(uintptr('a')), out: V(string("a"))},
+	{in: V(int(-1)), out: V(string("\uFFFD"))},
+	{in: V(int8(-2)), out: V(string("\uFFFD"))},
+	{in: V(int16(-3)), out: V(string("\uFFFD"))},
+	{in: V(int32(-4)), out: V(string("\uFFFD"))},
+	{in: V(int64(-5)), out: V(string("\uFFFD"))},
+	{in: V(uint(0x110001)), out: V(string("\uFFFD"))},
+	{in: V(uint32(0x110002)), out: V(string("\uFFFD"))},
+	{in: V(uint64(0x110003)), out: V(string("\uFFFD"))},
+	{in: V(uintptr(0x110004)), out: V(string("\uFFFD"))},
 
 	// named string
-	{V(MyString("hello")), V(string("hello"))},
-	{V(string("hello")), V(MyString("hello"))},
-	{V(string("hello")), V(string("hello"))},
-	{V(MyString("hello")), V(MyString("hello"))},
-	{V(MyString("bytes1")), V([]byte("bytes1"))},
-	{V([]byte("bytes2")), V(MyString("bytes2"))},
-	{V([]byte("bytes3")), V([]byte("bytes3"))},
-	{V(MyString("runes♝")), V([]rune("runes♝"))},
-	{V([]rune("runes♕")), V(MyString("runes♕"))},
-	{V([]rune("runes🙈🙉🙊")), V([]rune("runes🙈🙉🙊"))},
-	{V([]rune("runes🙈🙉🙊")), V(MyRunes("runes🙈🙉🙊"))},
-	{V(MyRunes("runes🙈🙉🙊")), V([]rune("runes🙈🙉🙊"))},
-	{V(int('a')), V(MyString("a"))},
-	{V(int8('a')), V(MyString("a"))},
-	{V(int16('a')), V(MyString("a"))},
-	{V(int32('a')), V(MyString("a"))},
-	{V(int64('a')), V(MyString("a"))},
-	{V(uint('a')), V(MyString("a"))},
-	{V(uint8('a')), V(MyString("a"))},
-	{V(uint16('a')), V(MyString("a"))},
-	{V(uint32('a')), V(MyString("a"))},
-	{V(uint64('a')), V(MyString("a"))},
-	{V(uintptr('a')), V(MyString("a"))},
-	{V(int(-1)), V(MyString("\uFFFD"))},
-	{V(int8(-2)), V(MyString("\uFFFD"))},
-	{V(int16(-3)), V(MyString("\uFFFD"))},
-	{V(int32(-4)), V(MyString("\uFFFD"))},
-	{V(int64(-5)), V(MyString("\uFFFD"))},
-	{V(uint(0x110001)), V(MyString("\uFFFD"))},
-	{V(uint32(0x110002)), V(MyString("\uFFFD"))},
-	{V(uint64(0x110003)), V(MyString("\uFFFD"))},
-	{V(uintptr(0x110004)), V(MyString("\uFFFD"))},
+	{in: V(MyString("hello")), out: V(string("hello"))},
+	{in: V(string("hello")), out: V(MyString("hello"))},
+	{in: V(string("hello")), out: V(string("hello"))},
+	{in: V(MyString("hello")), out: V(MyString("hello"))},
+	{in: V(MyString("bytes1")), out: V([]byte("bytes1"))},
+	{in: V([]byte("bytes2")), out: V(MyString("bytes2"))},
+	{in: V([]byte("bytes3")), out: V([]byte("bytes3"))},
+	{in: V(MyString("runes♝")), out: V([]rune("runes♝"))},
+	{in: V([]rune("runes♕")), out: V(MyString("runes♕"))},
+	{in: V([]rune("runes🙈🙉🙊")), out: V([]rune("runes🙈🙉🙊"))},
+	{in: V([]rune("runes🙈🙉🙊")), out: V(MyRunes("runes🙈🙉🙊"))},
+	{in: V(MyRunes("runes🙈🙉🙊")), out: V([]rune("runes🙈🙉🙊"))},
+	{in: V(int('a')), out: V(MyString("a"))},
+	{in: V(int8('a')), out: V(MyString("a"))},
+	{in: V(int16('a')), out: V(MyString("a"))},
+	{in: V(int32('a')), out: V(MyString("a"))},
+	{in: V(int64('a')), out: V(MyString("a"))},
+	{in: V(uint('a')), out: V(MyString("a"))},
+	{in: V(uint8('a')), out: V(MyString("a"))},
+	{in: V(uint16('a')), out: V(MyString("a"))},
+	{in: V(uint32('a')), out: V(MyString("a"))},
+	{in: V(uint64('a')), out: V(MyString("a"))},
+	{in: V(uintptr('a')), out: V(MyString("a"))},
+	{in: V(int(-1)), out: V(MyString("\uFFFD"))},
+	{in: V(int8(-2)), out: V(MyString("\uFFFD"))},
+	{in: V(int16(-3)), out: V(MyString("\uFFFD"))},
+	{in: V(int32(-4)), out: V(MyString("\uFFFD"))},
+	{in: V(int64(-5)), out: V(MyString("\uFFFD"))},
+	{in: V(uint(0x110001)), out: V(MyString("\uFFFD"))},
+	{in: V(uint32(0x110002)), out: V(MyString("\uFFFD"))},
+	{in: V(uint64(0x110003)), out: V(MyString("\uFFFD"))},
+	{in: V(uintptr(0x110004)), out: V(MyString("\uFFFD"))},
 
 	// named []byte
-	{V(string("bytes1")), V(MyBytes("bytes1"))},
-	{V(MyBytes("bytes2")), V(string("bytes2"))},
-	{V(MyBytes("bytes3")), V(MyBytes("bytes3"))},
-	{V(MyString("bytes1")), V(MyBytes("bytes1"))},
-	{V(MyBytes("bytes2")), V(MyString("bytes2"))},
+	{in: V(string("bytes1")), out: V(MyBytes("bytes1"))},
+	{in: V(MyBytes("bytes2")), out: V(string("bytes2"))},
+	{in: V(MyBytes("bytes3")), out: V(MyBytes("bytes3"))},
+	{in: V(MyString("bytes1")), out: V(MyBytes("bytes1"))},
+	{in: V(MyBytes("bytes2")), out: V(MyString("bytes2"))},
 
 	// named []rune
-	{V(string("runes♝")), V(MyRunes("runes♝"))},
-	{V(MyRunes("runes♕")), V(string("runes♕"))},
-	{V(MyRunes("runes🙈🙉🙊")), V(MyRunes("runes🙈🙉🙊"))},
-	{V(MyString("runes♝")), V(MyRunes("runes♝"))},
-	{V(MyRunes("runes♕")), V(MyString("runes♕"))},
+	{in: V(string("runes♝")), out: V(MyRunes("runes♝"))},
+	{in: V(MyRunes("runes♕")), out: V(string("runes♕"))},
+	{in: V(MyRunes("runes🙈🙉🙊")), out: V(MyRunes("runes🙈🙉🙊"))},
+	{in: V(MyString("runes♝")), out: V(MyRunes("runes♝"))},
+	{in: V(MyRunes("runes♕")), out: V(MyString("runes♕"))},
 
 	// named types and equal underlying types
-	{V(new(int)), V(new(integer))},
-	{V(new(integer)), V(new(int))},
-	{V(Empty{}), V(struct{}{})},
-	{V(new(Empty)), V(new(struct{}))},
-	{V(struct{}{}), V(Empty{})},
-	{V(new(struct{})), V(new(Empty))},
-	{V(Empty{}), V(Empty{})},
-	{V(MyBytes{}), V([]byte{})},
-	{V([]byte{}), V(MyBytes{})},
-	{V((func())(nil)), V(MyFunc(nil))},
-	{V((MyFunc)(nil)), V((func())(nil))},
+	{in: V(new(int)), out: V(new(integer))},
+	{in: V(new(integer)), out: V(new(int))},
+	{in: V(Empty{}), out: V(struct{}{})},
+	{in: V(new(Empty)), out: V(new(struct{}))},
+	{in: V(struct{}{}), out: V(Empty{})},
+	{in: V(new(struct{})), out: V(new(Empty))},
+	{in: V(Empty{}), out: V(Empty{})},
+	{in: V(MyBytes{}), out: V([]byte{})},
+	{in: V([]byte{}), out: V(MyBytes{})},
+	{in: V((func())(nil)), out: V(MyFunc(nil))},
+	{in: V((MyFunc)(nil)), out: V((func())(nil))},
 
 	// structs with different tags
-	{V(struct {
+	{in: V(struct {
 		x int `some:"foo"`
-	}{}), V(struct {
+	}{}), out: V(struct {
 		x int `some:"bar"`
 	}{})},
 
-	{V(struct {
+	{in: V(struct {
 		x int `some:"bar"`
-	}{}), V(struct {
+	}{}), out: V(struct {
 		x int `some:"foo"`
 	}{})},
 
-	{V(MyStruct{}), V(struct {
+	{in: V(MyStruct{}), out: V(struct {
 		x int `some:"foo"`
 	}{})},
 
-	{V(struct {
+	{in: V(struct {
 		x int `some:"foo"`
-	}{}), V(MyStruct{})},
+	}{}), out: V(MyStruct{})},
 
-	{V(MyStruct{}), V(struct {
+	{in: V(MyStruct{}), out: V(struct {
 		x int `some:"bar"`
 	}{})},
 
-	{V(struct {
+	{in: V(struct {
 		x int `some:"bar"`
-	}{}), V(MyStruct{})},
+	}{}), out: V(MyStruct{})},
 
 	// can convert *byte and *MyByte
-	{V((*byte)(nil)), V((*MyByte)(nil))},
-	{V((*MyByte)(nil)), V((*byte)(nil))},
+	{in: V((*byte)(nil)), out: V((*MyByte)(nil))},
+	{in: V((*MyByte)(nil)), out: V((*byte)(nil))},
 
 	// cannot convert mismatched array sizes
-	{V([2]byte{}), V([2]byte{})},
-	{V([3]byte{}), V([3]byte{})},
+	{in: V([2]byte{}), out: V([2]byte{})},
+	{in: V([3]byte{}), out: V([3]byte{})},
 
 	// cannot convert other instances
-	{V((**byte)(nil)), V((**byte)(nil))},
-	{V((**MyByte)(nil)), V((**MyByte)(nil))},
-	{V((chan byte)(nil)), V((chan byte)(nil))},
-	{V((chan MyByte)(nil)), V((chan MyByte)(nil))},
-	{V(([]byte)(nil)), V(([]byte)(nil))},
-	{V(([]MyByte)(nil)), V(([]MyByte)(nil))},
-	{V((map[int]byte)(nil)), V((map[int]byte)(nil))},
-	{V((map[int]MyByte)(nil)), V((map[int]MyByte)(nil))},
-	{V((map[byte]int)(nil)), V((map[byte]int)(nil))},
-	{V((map[MyByte]int)(nil)), V((map[MyByte]int)(nil))},
-	{V([2]byte{}), V([2]byte{})},
-	{V([2]MyByte{}), V([2]MyByte{})},
+	{in: V((**byte)(nil)), out: V((**byte)(nil))},
+	{in: V((**MyByte)(nil)), out: V((**MyByte)(nil))},
+	{in: V((chan byte)(nil)), out: V((chan byte)(nil))},
+	{in: V((chan MyByte)(nil)), out: V((chan MyByte)(nil))},
+	{in: V(([]byte)(nil)), out: V(([]byte)(nil))},
+	{in: V(([]MyByte)(nil)), out: V(([]MyByte)(nil))},
+	{in: V((map[int]byte)(nil)), out: V((map[int]byte)(nil))},
+	{in: V((map[int]MyByte)(nil)), out: V((map[int]MyByte)(nil))},
+	{in: V((map[byte]int)(nil)), out: V((map[byte]int)(nil))},
+	{in: V((map[MyByte]int)(nil)), out: V((map[MyByte]int)(nil))},
+	{in: V([2]byte{}), out: V([2]byte{})},
+	{in: V([2]MyByte{}), out: V([2]MyByte{})},
 
 	// other
-	{V((***int)(nil)), V((***int)(nil))},
-	{V((***byte)(nil)), V((***byte)(nil))},
-	{V((***int32)(nil)), V((***int32)(nil))},
-	{V((***int64)(nil)), V((***int64)(nil))},
-	{V((chan int)(nil)), V((<-chan int)(nil))},
-	{V((chan int)(nil)), V((chan<- int)(nil))},
-	{V((chan string)(nil)), V((<-chan string)(nil))},
-	{V((chan string)(nil)), V((chan<- string)(nil))},
-	{V((chan byte)(nil)), V((chan byte)(nil))},
-	{V((chan MyByte)(nil)), V((chan MyByte)(nil))},
-	{V((map[int]bool)(nil)), V((map[int]bool)(nil))},
-	{V((map[int]byte)(nil)), V((map[int]byte)(nil))},
-	{V((map[uint]bool)(nil)), V((map[uint]bool)(nil))},
-	{V([]uint(nil)), V([]uint(nil))},
-	{V([]int(nil)), V([]int(nil))},
-	{V(new(interface{})), V(new(interface{}))},
-	{V(new(io.Reader)), V(new(io.Reader))},
-	{V(new(io.Writer)), V(new(io.Writer))},
+	{in: V((***int)(nil)), out: V((***int)(nil))},
+	{in: V((***byte)(nil)), out: V((***byte)(nil))},
+	{in: V((***int32)(nil)), out: V((***int32)(nil))},
+	{in: V((***int64)(nil)), out: V((***int64)(nil))},
+	{in: V((chan int)(nil)), out: V((<-chan int)(nil))},
+	{in: V((chan int)(nil)), out: V((chan<- int)(nil))},
+	{in: V((chan string)(nil)), out: V((<-chan string)(nil))},
+	{in: V((chan string)(nil)), out: V((chan<- string)(nil))},
+	{in: V((chan byte)(nil)), out: V((chan byte)(nil))},
+	{in: V((chan MyByte)(nil)), out: V((chan MyByte)(nil))},
+	{in: V((map[int]bool)(nil)), out: V((map[int]bool)(nil))},
+	{in: V((map[int]byte)(nil)), out: V((map[int]byte)(nil))},
+	{in: V((map[uint]bool)(nil)), out: V((map[uint]bool)(nil))},
+	{in: V([]uint(nil)), out: V([]uint(nil))},
+	{in: V([]int(nil)), out: V([]int(nil))},
+	{in: V(new(any)), out: V(new(any))},
+	{in: V(new(io.Reader)), out: V(new(io.Reader))},
+	{in: V(new(io.Writer)), out: V(new(io.Writer))},
 
 	// interfaces
-	{V(int(1)), EmptyInterfaceV(int(1))},
-	{V(string("hello")), EmptyInterfaceV(string("hello"))},
-	{V(new(bytes.Buffer)), ReaderV(new(bytes.Buffer))},
-	{ReadWriterV(new(bytes.Buffer)), ReaderV(new(bytes.Buffer))},
-	{V(new(bytes.Buffer)), ReadWriterV(new(bytes.Buffer))},
+	{in: V(int(1)), out: EmptyInterfaceV(int(1))},
+	{in: V(string("hello")), out: EmptyInterfaceV(string("hello"))},
+	{in: V(new(bytes.Buffer)), out: ReaderV(new(bytes.Buffer))},
+	{in: ReadWriterV(new(bytes.Buffer)), out: ReaderV(new(bytes.Buffer))},
+	{in: V(new(bytes.Buffer)), out: ReadWriterV(new(bytes.Buffer))},
 }
 
 func TestConvert(t *testing.T) {
@@ -3795,21 +3804,21 @@ var comparableTests = []struct {
 	typ Type
 	ok  bool
 }{
-	{TypeOf(1), true},
-	{TypeOf("hello"), true},
-	{TypeOf(new(byte)), true},
-	{TypeOf((func())(nil)), false},
-	{TypeOf([]byte{}), false},
-	{TypeOf(map[string]int{}), false},
-	{TypeOf(make(chan int)), true},
-	{TypeOf(1.5), true},
-	{TypeOf(false), true},
-	{TypeOf(1i), true},
-	{TypeOf(ComparableStruct{}), true},
-	{TypeOf(NonComparableStruct{}), false},
-	{TypeOf([10]map[string]int{}), false},
-	{TypeOf([10]string{}), true},
-	{TypeOf(new(interface{})).Elem(), true},
+	{typ: TypeOf(1), ok: true},
+	{typ: TypeOf("hello"), ok: true},
+	{typ: TypeOf(new(byte)), ok: true},
+	{typ: TypeOf((func())(nil)), ok: false},
+	{typ: TypeOf([]byte{}), ok: false},
+	{typ: TypeOf(map[string]int{}), ok: false},
+	{typ: TypeOf(make(chan int)), ok: true},
+	{typ: TypeOf(1.5), ok: true},
+	{typ: TypeOf(false), ok: true},
+	{typ: TypeOf(1i), ok: true},
+	{typ: TypeOf(ComparableStruct{}), ok: true},
+	{typ: TypeOf(NonComparableStruct{}), ok: false},
+	{typ: TypeOf([10]map[string]int{}), ok: false},
+	{typ: TypeOf([10]string{}), ok: true},
+	{typ: TypeOf(new(any)).Elem(), ok: true},
 }
 
 func TestComparable(t *testing.T) {
@@ -3859,7 +3868,7 @@ func TestOverflow(t *testing.T) {
 	}
 }
 
-func checkSameType(t *testing.T, x Type, y interface{}) {
+func checkSameType(t *testing.T, x Type, y any) {
 	if x != TypeOf(y) || TypeOf(Zero(x).Interface()) != TypeOf(y) {
 		t.Errorf("did not find preexisting type for %s (vs %s)", TypeOf(x), TypeOf(y))
 	}
@@ -3869,78 +3878,78 @@ func TestArrayOf(t *testing.T) {
 	// check construction and use of type not in binary
 	tests := []struct {
 		n          int
-		value      func(i int) interface{}
+		value      func(i int) any
 		comparable bool
 		want       string
 	}{
 		{
 			n:          0,
-			value:      func(i int) interface{} { type Tint int; return Tint(i) },
+			value:      func(i int) any { type Tint int; return Tint(i) },
 			comparable: true,
 			want:       "[]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tint int; return Tint(i) },
+			value:      func(i int) any { type Tint int; return Tint(i) },
 			comparable: true,
 			want:       "[0 1 2 3 4 5 6 7 8 9]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tfloat float64; return Tfloat(i) },
+			value:      func(i int) any { type Tfloat float64; return Tfloat(i) },
 			comparable: true,
 			want:       "[0 1 2 3 4 5 6 7 8 9]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tstring string; return Tstring(strconv.Itoa(i)) },
+			value:      func(i int) any { type Tstring string; return Tstring(strconv.Itoa(i)) },
 			comparable: true,
 			want:       "[0 1 2 3 4 5 6 7 8 9]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tstruct struct{ V int }; return Tstruct{i} },
+			value:      func(i int) any { type Tstruct struct{ V int }; return Tstruct{V: i} },
 			comparable: true,
 			want:       "[{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tint int; return []Tint{Tint(i)} },
+			value:      func(i int) any { type Tint int; return []Tint{Tint(i)} },
 			comparable: false,
 			want:       "[[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tint int; return [1]Tint{Tint(i)} },
+			value:      func(i int) any { type Tint int; return [1]Tint{Tint(i)} },
 			comparable: true,
 			want:       "[[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tstruct struct{ V [1]int }; return Tstruct{[1]int{i}} },
+			value:      func(i int) any { type Tstruct struct{ V [1]int }; return Tstruct{V: [1]int{i}} },
 			comparable: true,
 			want:       "[{[0]} {[1]} {[2]} {[3]} {[4]} {[5]} {[6]} {[7]} {[8]} {[9]}]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type Tstruct struct{ V []int }; return Tstruct{[]int{i}} },
+			value:      func(i int) any { type Tstruct struct{ V []int }; return Tstruct{V: []int{i}} },
 			comparable: false,
 			want:       "[{[0]} {[1]} {[2]} {[3]} {[4]} {[5]} {[6]} {[7]} {[8]} {[9]}]",
 		},
 		{
 			n:          10,
-			value:      func(i int) interface{} { type TstructUV struct{ U, V int }; return TstructUV{i, i} },
+			value:      func(i int) any { type TstructUV struct{ U, V int }; return TstructUV{U: i, V: i} },
 			comparable: true,
 			want:       "[{0 0} {1 1} {2 2} {3 3} {4 4} {5 5} {6 6} {7 7} {8 8} {9 9}]",
 		},
 		{
 			n: 10,
-			value: func(i int) interface{} {
+			value: func(i int) any {
 				type TstructUV struct {
 					U int
 					V float64
 				}
-				return TstructUV{i, float64(i)}
+				return TstructUV{U: i, V: float64(i)}
 			},
 			comparable: true,
 			want:       "[{0 0} {1 1} {2 2} {3 3} {4 4} {5 5} {6 6} {7 7} {8 8} {9 9}]",
@@ -3996,7 +4005,7 @@ func TestArrayOfGC(t *testing.T) {
 	type T *uintptr
 	tt := TypeOf(T(nil))
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := New(ArrayOf(n, tt)).Elem()
 		for j := 0; j < v.Len(); j++ {
@@ -4152,7 +4161,7 @@ func TestSliceOfGC(t *testing.T) {
 	tt := TypeOf(T(nil))
 	st := SliceOf(tt)
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := MakeSlice(st, n, n)
 		for j := 0; j < v.Len(); j++ {
@@ -4342,7 +4351,7 @@ func TestStructOf(t *testing.T) {
 	checkSameType(t, StructOf(fields[2:3]), struct{ Y uint64 }{})
 
 	// gccgo used to fail this test.
-	type structFieldType interface{}
+	type structFieldType any
 	checkSameType(t,
 		StructOf([]StructField{
 			{
@@ -4355,7 +4364,6 @@ func TestStructOf(t *testing.T) {
 
 // isExported reports whether name is an exported Go symbol
 // (that is, whether it begins with an upper-case letter).
-//
 func isExported(name string) bool {
 	ch, _ := utf8.DecodeRuneInString(name)
 	return unicode.IsUpper(ch)
@@ -4371,7 +4379,7 @@ func TestStructOfGC(t *testing.T) {
 	st := StructOf(fields)
 
 	const n = 10000
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := New(st).Elem()
 		for j := 0; j < v.NumField(); j++ {
@@ -4599,7 +4607,8 @@ func (i StructI) Get() int { return int(i) }
 
 type StructIPtr int
 
-func (i *StructIPtr) Get() int  { return int(*i) }
+func (i *StructIPtr) Get() int { return int(*i) }
+
 func (i *StructIPtr) Set(v int) { *(*int)(i) = v }
 
 type SettableStruct struct {
@@ -4637,7 +4646,7 @@ func TestStructOfWithInterface(t *testing.T) {
 		{
 			name: "StructI",
 			typ:  PtrTo(TypeOf(StructI(want))),
-			val: ValueOf(func() interface{} {
+			val: ValueOf(func() any {
 				v := StructI(want)
 				return &v
 			}()),
@@ -4646,7 +4655,7 @@ func TestStructOfWithInterface(t *testing.T) {
 		{
 			name: "StructIPtr",
 			typ:  PtrTo(TypeOf(StructIPtr(want))),
-			val: ValueOf(func() interface{} {
+			val: ValueOf(func() any {
 				v := StructIPtr(want)
 				return &v
 			}()),
@@ -4878,7 +4887,7 @@ func TestChanOfGC(t *testing.T) {
 	// so we have to save pointers to channels in x; the pointer code will
 	// use the gc info in the newly constructed chan type.
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := MakeChan(ct, n)
 		for j := 0; j < n; j++ {
@@ -4936,7 +4945,7 @@ func TestMapOfGCKeys(t *testing.T) {
 	// so we have to save pointers to maps in x; the pointer code will
 	// use the gc info in the newly constructed map type.
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := MakeMap(mt)
 		for j := 0; j < n; j++ {
@@ -4974,7 +4983,7 @@ func TestMapOfGCValues(t *testing.T) {
 	// so we have to save pointers to maps in x; the pointer code will
 	// use the gc info in the newly constructed map type.
 	const n = 100
-	var x []interface{}
+	var x []any
 	for i := 0; i < n; i++ {
 		v := MakeMap(mt)
 		for j := 0; j < n; j++ {
@@ -5032,7 +5041,7 @@ func TestFuncOf(t *testing.T) {
 	testCases := []struct {
 		in, out  []Type
 		variadic bool
-		want     interface{}
+		want     any
 	}{
 		{in: []Type{TypeOf(T1(0))}, want: (func(T1))(nil)},
 		{in: []Type{TypeOf(int(0))}, want: (func(int))(nil)},
@@ -5089,7 +5098,9 @@ type R1 struct {
 }
 
 type R2 R1
+
 type R3 R1
+
 type R4 R1
 
 type R5 struct {
@@ -5100,7 +5111,9 @@ type R5 struct {
 }
 
 type R6 R5
+
 type R7 R5
+
 type R8 R5
 
 type R9 struct {
@@ -5111,7 +5124,9 @@ type R9 struct {
 }
 
 type R10 R9
+
 type R11 R9
+
 type R12 R9
 
 type R13 struct {
@@ -5122,7 +5137,9 @@ type R13 struct {
 }
 
 type R14 R13
+
 type R15 R13
+
 type R16 R13
 
 type R17 struct {
@@ -5133,7 +5150,9 @@ type R17 struct {
 }
 
 type R18 R17
+
 type R19 R17
+
 type R20 R17
 
 type R21 struct {
@@ -5141,7 +5160,9 @@ type R21 struct {
 }
 
 type R22 R21
+
 type R23 R21
+
 type R24 R21
 
 func TestEmbed(t *testing.T) {
@@ -5247,7 +5268,6 @@ func TestAllocsInterfaceSmall(t *testing.T) {
 //	[false false false false]
 //	...
 //	[true true true true]
-//
 type exhaustive struct {
 	r    *rand.Rand
 	pos  int
@@ -5282,7 +5302,7 @@ func (x *exhaustive) Next() bool {
 
 func (x *exhaustive) Choose(max int) int {
 	if x.pos >= len(x.last) {
-		x.last = append(x.last, choice{x.r.Intn(max), 0, max})
+		x.last = append(x.last, choice{off: x.r.Intn(max), n: 0, max: max})
 	}
 	c := &x.last[x.pos]
 	x.pos++
@@ -5307,7 +5327,7 @@ func TestReflectFuncTraceback(t *testing.T) {
 }
 
 func TestReflectMethodTraceback(t *testing.T) {
-	p := Point{3, 4}
+	p := Point{x: 3, y: 4}
 	m := ValueOf(p).MethodByName("GCMethod")
 	i := ValueOf(m.Interface()).Call([]Value{ValueOf(5)})[0].Int()
 	if i != 8 {
@@ -5459,14 +5479,14 @@ func TestValueString(t *testing.T) {
 
 func TestInvalid(t *testing.T) {
 	// Used to have inconsistency between IsValid() and Kind() != Invalid.
-	type T struct{ v interface{} }
+	type T struct{ v any }
 
 	v := ValueOf(T{}).Field(0)
-	if v.IsValid() != true || v.Kind() != Interface {
+	if !v.IsValid() || v.Kind() != Interface {
 		t.Errorf("field: IsValid=%v, Kind=%v, want true, Interface", v.IsValid(), v.Kind())
 	}
 	v = v.Elem()
-	if v.IsValid() != false || v.Kind() != Invalid {
+	if v.IsValid() || v.Kind() != Invalid {
 		t.Errorf("field elem: IsValid=%v, Kind=%v, want false, Invalid", v.IsValid(), v.Kind())
 	}
 }
@@ -5477,7 +5497,7 @@ func TestLargeGCProg(t *testing.T) {
 	fv.Call([]Value{ValueOf([256]*byte{})})
 }
 
-func fieldIndexRecover(t Type, i int) (recovered interface{}) {
+func fieldIndexRecover(t Type, i int) (recovered any) {
 	defer func() {
 		recovered = recover()
 	}()
@@ -5488,15 +5508,15 @@ func fieldIndexRecover(t Type, i int) (recovered interface{}) {
 
 // Issue 15046.
 func TestTypeFieldOutOfRangePanic(t *testing.T) {
-	typ := TypeOf(struct{ X int }{10})
+	typ := TypeOf(struct{ X int }{X: 10})
 	testIndices := [...]struct {
 		i         int
 		mustPanic bool
 	}{
-		0: {-2, true},
-		1: {0, false},
-		2: {1, true},
-		3: {1 << 10, true},
+		0: {i: -2, mustPanic: true},
+		1: {i: 0, mustPanic: false},
+		2: {i: 1, mustPanic: true},
+		3: {i: 1 << 10, mustPanic: true},
 	}
 	for i, tt := range testIndices {
 		recoveredErr := fieldIndexRecover(typ, tt.i)
@@ -5514,8 +5534,8 @@ func TestTypeFieldOutOfRangePanic(t *testing.T) {
 
 // Issue 9179.
 func TestCallGC(t *testing.T) {
-	f := func(a, b, c, d, e string) {
-	}
+	f := func(a, b, c, d, e string) {}
+
 	g := func(in []Value) []Value {
 		runtime.GC()
 		return nil
@@ -5560,7 +5580,8 @@ func TestKeepFuncLive(t *testing.T) {
 
 type UnExportedFirst int
 
-func (i UnExportedFirst) ΦExported()  {}
+func (i UnExportedFirst) ΦExported() {}
+
 func (i UnExportedFirst) unexported() {}
 
 // Issue 21177
@@ -5630,13 +5651,13 @@ func init() {
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func(a, b string) string { return "" }).Type(),
-			6 * PtrSize,
-			4 * PtrSize,
-			4 * PtrSize,
-			[]byte{1, 0, 1, 0, 1},
-			[]byte{1, 0, 1, 0, 1},
+			rcvr:      nil,
+			t:         ValueOf(func(a, b string) string { return "" }).Type(),
+			size:      6 * PtrSize,
+			argsize:   4 * PtrSize,
+			retOffset: 4 * PtrSize,
+			stack:     []byte{1, 0, 1, 0, 1},
+			gc:        []byte{1, 0, 1, 0, 1},
 		})
 
 	var r []byte
@@ -5647,24 +5668,24 @@ func init() {
 	}
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func(a, b, c uint32, p *byte, d uint16) {}).Type(),
-			roundup(roundup(3*4, PtrSize)+PtrSize+2, argAlign),
-			roundup(3*4, PtrSize) + PtrSize + 2,
-			roundup(roundup(3*4, PtrSize)+PtrSize+2, argAlign),
-			r,
-			r,
+			rcvr:      nil,
+			t:         ValueOf(func(a, b, c uint32, p *byte, d uint16) {}).Type(),
+			size:      roundup(roundup(3*4, PtrSize)+PtrSize+2, argAlign),
+			argsize:   roundup(3*4, PtrSize) + PtrSize + 2,
+			retOffset: roundup(roundup(3*4, PtrSize)+PtrSize+2, argAlign),
+			stack:     r,
+			gc:        r,
 		})
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func(a map[int]int, b uintptr, c interface{}) {}).Type(),
-			4 * PtrSize,
-			4 * PtrSize,
-			4 * PtrSize,
-			[]byte{1, 0, 1, 1},
-			[]byte{1, 0, 1, 1},
+			rcvr:      nil,
+			t:         ValueOf(func(a map[int]int, b uintptr, c any) {}).Type(),
+			size:      4 * PtrSize,
+			argsize:   4 * PtrSize,
+			retOffset: 4 * PtrSize,
+			stack:     []byte{1, 0, 1, 1},
+			gc:        []byte{1, 0, 1, 1},
 		})
 
 	type S struct {
@@ -5673,57 +5694,57 @@ func init() {
 	}
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func(a S) {}).Type(),
-			4 * PtrSize,
-			4 * PtrSize,
-			4 * PtrSize,
-			[]byte{0, 0, 1, 1},
-			[]byte{0, 0, 1, 1},
+			rcvr:      nil,
+			t:         ValueOf(func(a S) {}).Type(),
+			size:      4 * PtrSize,
+			argsize:   4 * PtrSize,
+			retOffset: 4 * PtrSize,
+			stack:     []byte{0, 0, 1, 1},
+			gc:        []byte{0, 0, 1, 1},
 		})
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			ValueOf((*byte)(nil)).Type(),
-			ValueOf(func(a uintptr, b *int) {}).Type(),
-			roundup(3*PtrSize, argAlign),
-			3 * PtrSize,
-			roundup(3*PtrSize, argAlign),
-			[]byte{1, 0, 1},
-			[]byte{1, 0, 1},
+			rcvr:      ValueOf((*byte)(nil)).Type(),
+			t:         ValueOf(func(a uintptr, b *int) {}).Type(),
+			size:      roundup(3*PtrSize, argAlign),
+			argsize:   3 * PtrSize,
+			retOffset: roundup(3*PtrSize, argAlign),
+			stack:     []byte{1, 0, 1},
+			gc:        []byte{1, 0, 1},
 		})
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func(a uintptr) {}).Type(),
-			roundup(PtrSize, argAlign),
-			PtrSize,
-			roundup(PtrSize, argAlign),
-			[]byte{},
-			[]byte{},
+			rcvr:      nil,
+			t:         ValueOf(func(a uintptr) {}).Type(),
+			size:      roundup(PtrSize, argAlign),
+			argsize:   PtrSize,
+			retOffset: roundup(PtrSize, argAlign),
+			stack:     []byte{},
+			gc:        []byte{},
 		})
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			nil,
-			ValueOf(func() uintptr { return 0 }).Type(),
-			PtrSize,
-			0,
-			0,
-			[]byte{},
-			[]byte{},
+			rcvr:      nil,
+			t:         ValueOf(func() uintptr { return 0 }).Type(),
+			size:      PtrSize,
+			argsize:   0,
+			retOffset: 0,
+			stack:     []byte{},
+			gc:        []byte{},
 		})
 
 	funcLayoutTests = append(funcLayoutTests,
 		funcLayoutTest{
-			ValueOf(uintptr(0)).Type(),
-			ValueOf(func(a uintptr) {}).Type(),
-			2 * PtrSize,
-			2 * PtrSize,
-			2 * PtrSize,
-			[]byte{1},
-			[]byte{1},
+			rcvr:      ValueOf(uintptr(0)).Type(),
+			t:         ValueOf(func(a uintptr) {}).Type(),
+			size:      2 * PtrSize,
+			argsize:   2 * PtrSize,
+			retOffset: 2 * PtrSize,
+			stack:     []byte{1},
+			gc:        []byte{1},
 			// Note: this one is tricky, as the receiver is not a pointer. But we
 			// pass the receiver by reference to the autogenerated pointer-receiver
 			// version of the function.
@@ -5738,8 +5759,10 @@ func naclpad() []byte {
 }
 
 func rep(n int, b []byte) []byte { return bytes.Repeat(b, n) }
-func join(b ...[]byte) []byte    { return bytes.Join(b, nil) }
-func lit(x ...byte) []byte       { return x }
+
+func join(b ...[]byte) []byte { return bytes.Join(b, nil) }
+
+func lit(x ...byte) []byte { return x }
 
 func TestTypeOfTypeOf(t *testing.T) {
 	// Check that all the type constructors return concrete *rtype implementations.
@@ -5825,23 +5848,23 @@ func TestChanAlloc(t *testing.T) {
 type TheNameOfThisTypeIsExactly255BytesLongSoWhenTheCompilerPrependsTheReflectTestPackageNameAndExtraStarTheLinkerRuntimeAndReflectPackagesWillHaveToCorrectlyDecodeTheSecondLengthByte0123456789_0123456789_0123456789_0123456789_0123456789_012345678 int
 
 type nameTest struct {
-	v    interface{}
+	v    any
 	want string
 }
 
 var nameTests = []nameTest{
-	{(*int32)(nil), "int32"},
-	{(*D1)(nil), "D1"},
-	{(*[]D1)(nil), ""},
-	{(*chan D1)(nil), ""},
-	{(*func() D1)(nil), ""},
-	{(*<-chan D1)(nil), ""},
-	{(*chan<- D1)(nil), ""},
-	{(*interface{})(nil), ""},
-	{(*interface {
+	{v: (*int32)(nil), want: "int32"},
+	{v: (*D1)(nil), want: "D1"},
+	{v: (*[]D1)(nil), want: ""},
+	{v: (*chan D1)(nil), want: ""},
+	{v: (*func() D1)(nil), want: ""},
+	{v: (*<-chan D1)(nil), want: ""},
+	{v: (*chan<- D1)(nil), want: ""},
+	{v: (*any)(nil), want: ""},
+	{v: (*interface {
 		F()
-	})(nil), ""},
-	{(*TheNameOfThisTypeIsExactly255BytesLongSoWhenTheCompilerPrependsTheReflectTestPackageNameAndExtraStarTheLinkerRuntimeAndReflectPackagesWillHaveToCorrectlyDecodeTheSecondLengthByte0123456789_0123456789_0123456789_0123456789_0123456789_012345678)(nil), "TheNameOfThisTypeIsExactly255BytesLongSoWhenTheCompilerPrependsTheReflectTestPackageNameAndExtraStarTheLinkerRuntimeAndReflectPackagesWillHaveToCorrectlyDecodeTheSecondLengthByte0123456789_0123456789_0123456789_0123456789_0123456789_012345678"},
+	})(nil), want: ""},
+	{v: (*TheNameOfThisTypeIsExactly255BytesLongSoWhenTheCompilerPrependsTheReflectTestPackageNameAndExtraStarTheLinkerRuntimeAndReflectPackagesWillHaveToCorrectlyDecodeTheSecondLengthByte0123456789_0123456789_0123456789_0123456789_0123456789_012345678)(nil), want: "TheNameOfThisTypeIsExactly255BytesLongSoWhenTheCompilerPrependsTheReflectTestPackageNameAndExtraStarTheLinkerRuntimeAndReflectPackagesWillHaveToCorrectlyDecodeTheSecondLengthByte0123456789_0123456789_0123456789_0123456789_0123456789_012345678"},
 }
 
 func TestNames(t *testing.T) {
@@ -5859,16 +5882,16 @@ func TestTypeStrings(t *testing.T) {
 		want string
 	}
 	stringTests := []stringTest{
-		{TypeOf(func(int) {}), "func(int)"},
-		{FuncOf([]Type{TypeOf(int(0))}, nil, false), "func(int)"},
-		{TypeOf(XM{}), "reflect_test.XM"},
-		{TypeOf(new(XM)), "*reflect_test.XM"},
-		{TypeOf(new(XM).String), "func() string"},
-		{TypeOf(new(XM)).Method(0).Type, "func(*reflect_test.XM) string"},
-		{ChanOf(3, TypeOf(XM{})), "chan reflect_test.XM"},
-		{MapOf(TypeOf(int(0)), TypeOf(XM{})), "map[int]reflect_test.XM"},
-		{ArrayOf(3, TypeOf(XM{})), "[3]reflect_test.XM"},
-		{ArrayOf(3, TypeOf(struct{}{})), "[3]struct {}"},
+		{typ: TypeOf(func(int) {}), want: "func(int)"},
+		{typ: FuncOf([]Type{TypeOf(int(0))}, nil, false), want: "func(int)"},
+		{typ: TypeOf(XM{}), want: "reflect_test.XM"},
+		{typ: TypeOf(new(XM)), want: "*reflect_test.XM"},
+		{typ: TypeOf(new(XM).String), want: "func() string"},
+		{typ: TypeOf(new(XM)).Method(0).Type, want: "func(*reflect_test.XM) string"},
+		{typ: ChanOf(3, TypeOf(XM{})), want: "chan reflect_test.XM"},
+		{typ: MapOf(TypeOf(int(0)), TypeOf(XM{})), want: "map[int]reflect_test.XM"},
+		{typ: ArrayOf(3, TypeOf(XM{})), want: "[3]reflect_test.XM"},
+		{typ: ArrayOf(3, TypeOf(struct{}{})), want: "[3]struct {}"},
 	}
 
 	for i, test := range stringTests {
@@ -5900,9 +5923,9 @@ func TestSwapper(t *testing.T) {
 	type S string
 
 	tests := []struct {
-		in   interface{}
+		in   any
 		i, j int
-		want interface{}
+		want any
 	}{
 		{
 			in:   []int{1, 20, 300},
@@ -5947,16 +5970,16 @@ func TestSwapper(t *testing.T) {
 			want: []S{"larry", "sergey", "eric"},
 		},
 		{
-			in:   []pair{{1, 2}, {3, 4}, {5, 6}},
+			in:   []pair{{x: 1, y: 2}, {x: 3, y: 4}, {x: 5, y: 6}},
 			i:    0,
 			j:    2,
-			want: []pair{{5, 6}, {3, 4}, {1, 2}},
+			want: []pair{{x: 5, y: 6}, {x: 3, y: 4}, {x: 1, y: 2}},
 		},
 		{
-			in:   []pairPtr{{1, 2, &a}, {3, 4, &b}, {5, 6, &c}},
+			in:   []pairPtr{{x: 1, y: 2, p: &a}, {x: 3, y: 4, p: &b}, {x: 5, y: 6, p: &c}},
 			i:    0,
 			j:    2,
-			want: []pairPtr{{5, 6, &c}, {3, 4, &b}, {1, 2, &a}},
+			want: []pairPtr{{x: 5, y: 6, p: &c}, {x: 3, y: 4, p: &b}, {x: 1, y: 2, p: &a}},
 		},
 	}
 
@@ -6026,8 +6049,8 @@ func TestIssue22031(t *testing.T) {
 	type t2 struct{ f s }
 
 	tests := []Value{
-		ValueOf(t1{s{{}}}).Field(0).Index(0).Field(0),
-		ValueOf(t2{s{{}}}).Field(0).Index(0).Field(0),
+		ValueOf(t1{s: s{{}}}).Field(0).Index(0).Field(0),
+		ValueOf(t2{f: s{{}}}).Field(0).Index(0).Field(0),
 	}
 
 	for i, test := range tests {
@@ -6039,7 +6062,8 @@ func TestIssue22031(t *testing.T) {
 
 type NonExportedFirst int
 
-func (i NonExportedFirst) ΦExported()       {}
+func (i NonExportedFirst) ΦExported() {}
+
 func (i NonExportedFirst) nonexported() int { panic("wrong") }
 
 func TestIssue22073(t *testing.T) {

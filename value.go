@@ -140,7 +140,7 @@ func value_Int(v Value) int64 {
 	return toRV(v).Int()
 }
 
-func value_Interface(v Value) interface{} {
+func value_Interface(v Value) any {
 	return toRV(v).Interface()
 }
 

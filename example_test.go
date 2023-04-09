@@ -11,11 +11,11 @@ import (
 	"io"
 	"os"
 
-	"github.com/goccy/go-reflect"
+	"github.com/3JoB/go-reflect"
 )
 
 func ExampleKind() {
-	for _, v := range []interface{}{"hi", 42, func() {}} {
+	for _, v := range []any{"hi", 42, func() {}} {
 		switch v := reflect.ValueOf(v); v.Kind() {
 		case reflect.String:
 			fmt.Println(v.String())
@@ -46,7 +46,7 @@ func ExampleMakeFunc() {
 	// When the function is invoked, reflect turns the arguments
 	// into Values, calls swap, and then turns swap's result slice
 	// into the values returned by the new function.
-	makeSwap := func(fptr interface{}) {
+	makeSwap := func(fptr any) {
 		// fptr is a pointer to a function.
 		// Obtain the function value itself (likely nil) as a reflect.Value
 		// so that we can query its type and then set the value.

@@ -7,13 +7,13 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/goccy/go-reflect"
+	"github.com/3JoB/go-reflect"
 )
 
 var (
 	typeToEncoderMap sync.Map
 	bufpool          = sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return &buffer{
 				b: make([]byte, 0, 1024),
 			}
@@ -27,8 +27,7 @@ type buffer struct {
 
 type encoder func(*buffer, unsafe.Pointer) error
 
-func Marshal(v interface{}) ([]byte, error) {
-
+func Marshal(v any) ([]byte, error) {
 	// Technique 1.
 	// Get type information and pointer from interface{} value without allocation.
 	typ, ptr := reflect.TypeAndPtrOf(v)
@@ -81,7 +80,6 @@ func compile(typ reflect.Type) (encoder, error) {
 }
 
 func compileStruct(typ reflect.Type) (encoder, error) {
-
 	encoders := []encoder{}
 
 	for i := 0; i < typ.NumField(); i++ {
@@ -121,14 +119,14 @@ func compileInt(typ reflect.Type) (encoder, error) {
 func Benchmark_Marshal(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		bytes, err := Marshal(struct{ I int }{10})
+		bytes, err := Marshal(struct{ I int }{I: 10})
 		if err != nil {
 			b.Fatal(err)
 		}
 		if string(bytes) != "{10}" {
 			b.Fatalf("unexpected error: %s", string(bytes))
 		}
-		bytes2, err := Marshal(struct{ I, J int }{10, 20})
+		bytes2, err := Marshal(struct{ I, J int }{I: 10, J: 20})
 		if err != nil {
 			b.Fatal(err)
 		}

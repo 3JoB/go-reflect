@@ -171,7 +171,8 @@ type Method struct {
 	// The combination of PkgPath and Name uniquely identifies a method
 	// in a method set.
 	// See https://golang.org/ref/spec#Uniqueness_of_identifiers
-	Name    string
+	Name string
+
 	PkgPath string
 
 	Type  Type  // method type
@@ -183,6 +184,7 @@ type Method struct {
 type StructField struct {
 	// Name is the field name.
 	Name string
+
 	// PkgPath is the package path that qualifies a lower case (unexported)
 	// field name. It is empty for upper case (exported) field names.
 	// See https://golang.org/ref/spec#Uniqueness_of_identifiers
@@ -264,17 +266,17 @@ func StructOf(fields []StructField) Type {
 
 // TypeOf returns the reflection Type that represents the dynamic type of i.
 // If i is a nil interface value, TypeOf returns nil.
-func TypeOf(v interface{}) Type {
+func TypeOf(v any) Type {
 	value := (*Value)(unsafe.Pointer(&v))
 	return value.typ
 }
 
 // TypeID returns unique type identifier of v.
-func TypeID(v interface{}) uintptr {
+func TypeID(v any) uintptr {
 	return uintptr(unsafe.Pointer(TypeOf(v)))
 }
 
-func valueOf(v interface{}) Value {
+func valueOf(v any) Value {
 	if v == nil {
 		return Value{}
 	}
@@ -291,20 +293,20 @@ func valueOf(v interface{}) Value {
 }
 
 // TypeAndPtrOf returns raw Type and ptr value in favor of performance.
-func TypeAndPtrOf(v interface{}) (Type, unsafe.Pointer) {
+func TypeAndPtrOf(v any) (Type, unsafe.Pointer) {
 	value := (*Value)(unsafe.Pointer(&v))
 	return value.typ, value.ptr
 }
 
 // ValueOf returns a new Value initialized to the concrete value
 // stored in the interface i. ValueOf(nil) returns the zero Value.
-func ValueOf(v interface{}) Value {
+func ValueOf(v any) Value {
 	escape(v)
 	return valueOf(v)
 }
 
 // ValueNoEscapeOf no escape of ValueOf.
-func ValueNoEscapeOf(v interface{}) Value {
+func ValueNoEscapeOf(v any) Value {
 	return valueOf(v)
 }
 
@@ -390,11 +392,11 @@ func Copy(dst, src Value) int {
 // values that have been compared before, it treats the values as
 // equal rather than examining the values to which they point.
 // This ensures that DeepEqual terminates.
-func DeepEqual(x, y interface{}) bool {
+func DeepEqual(x, y any) bool {
 	return reflect.DeepEqual(x, y)
 }
 
-func Swapper(slice interface{}) func(i, j int) {
+func Swapper(slice any) func(i, j int) {
 	return reflect.Swapper(slice)
 }
 
@@ -878,7 +880,7 @@ func (v Value) Int() int64 {
 //
 // It panics if the Value was obtained by accessing
 // unexported struct fields.
-func (v Value) Interface() interface{} {
+func (v Value) Interface() any {
 	return value_Interface(v)
 }
 

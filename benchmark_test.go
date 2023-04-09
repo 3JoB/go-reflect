@@ -4,24 +4,24 @@ import (
 	"reflect"
 	"testing"
 
-	goreflect "github.com/goccy/go-reflect"
+	goreflect "github.com/3JoB/go-reflect"
 )
 
-func kindFromReflect(v interface{}) reflect.Kind {
+func kindFromReflect(v any) reflect.Kind {
 	return reflect.TypeOf(v).Kind()
 }
 
-func kindFromGoReflect(v interface{}) goreflect.Kind {
+func kindFromGoReflect(v any) goreflect.Kind {
 	return goreflect.TypeOf(v).Kind()
 }
 
-func f(_ interface{}) {}
+func f(_ any) {}
 
-func valueFromReflect(v interface{}) {
+func valueFromReflect(v any) {
 	f(reflect.ValueOf(v).Elem())
 }
 
-func valueFromGoReflect(v interface{}) {
+func valueFromGoReflect(v any) {
 	f(goreflect.ValueNoEscapeOf(v).Elem())
 }
 

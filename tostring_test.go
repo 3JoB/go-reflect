@@ -11,7 +11,7 @@ package reflect_test
 import (
 	"strconv"
 
-	. "github.com/goccy/go-reflect"
+	. "github.com/3JoB/go-reflect"
 )
 
 // valueToString returns a textual representation of the reflection value val.

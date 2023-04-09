@@ -159,10 +159,10 @@ func type_toType(t Type) reflect.Type
 
 var dummy struct {
 	b bool
-	x interface{}
+	x any
 }
 
-func escape(x interface{}) {
+func escape(x any) {
 	if dummy.b {
 		dummy.x = x
 	}

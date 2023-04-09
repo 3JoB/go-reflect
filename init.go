@@ -83,7 +83,7 @@ func validateTypeOf() error {
 
 // validateValueOf validate value layout and flag values.
 func validateValueOf() error {
-	if v := ValueOf(true); v.Type().Kind() != Bool || v.Bool() != true {
+	if v := ValueOf(true); v.Type().Kind() != Bool || !v.Bool() {
 		return fmt.Errorf(errValueOf, "bool")
 	}
 	if v := ValueOf(int(1)); v.Type().Kind() != Int || v.Int() != 1 {

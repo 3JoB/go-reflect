@@ -12,7 +12,7 @@ import (
 	"testing"
 	"unsafe"
 
-	. "github.com/goccy/go-reflect"
+	. "github.com/3JoB/go-reflect"
 )
 
 func TestImplicitMapConversion(t *testing.T) {
@@ -32,7 +32,7 @@ func TestImplicitMapConversion(t *testing.T) {
 	}
 	{
 		// convert interface key
-		m := make(map[interface{}]int)
+		m := make(map[any]int)
 		mv := ValueOf(m)
 		mv.SetMapIndex(ValueOf(1), ValueOf(2))
 		x, ok := m[1]
@@ -45,7 +45,7 @@ func TestImplicitMapConversion(t *testing.T) {
 	}
 	{
 		// convert interface value
-		m := make(map[int]interface{})
+		m := make(map[int]any)
 		mv := ValueOf(m)
 		mv.SetMapIndex(ValueOf(1), ValueOf(2))
 		x, ok := m[1]
@@ -58,7 +58,7 @@ func TestImplicitMapConversion(t *testing.T) {
 	}
 	{
 		// convert both interface key and interface value
-		m := make(map[interface{}]interface{})
+		m := make(map[any]any)
 		mv := ValueOf(m)
 		mv.SetMapIndex(ValueOf(1), ValueOf(2))
 		x, ok := m[1]
@@ -115,7 +115,6 @@ func TestImplicitMapConversion(t *testing.T) {
 			t.Errorf("#7 MapIndex(b1) = %#x want %p", p, b2)
 		}
 	}
-
 }
 
 func TestImplicitSetConversion(t *testing.T) {
@@ -161,26 +160,28 @@ func TestImplicitAppendConversion(t *testing.T) {
 }
 
 var implementsTests = []struct {
-	x interface{}
-	t interface{}
+	x any
+	t any
 	b bool
 }{
-	{new(*bytes.Buffer), new(io.Reader), true},
-	{new(bytes.Buffer), new(io.Reader), false},
-	{new(*bytes.Buffer), new(io.ReaderAt), false},
-	{new(*ast.Ident), new(ast.Expr), true},
-	{new(*notAnExpr), new(ast.Expr), false},
-	{new(*ast.Ident), new(notASTExpr), false},
-	{new(notASTExpr), new(ast.Expr), false},
-	{new(ast.Expr), new(notASTExpr), false},
-	{new(*notAnExpr), new(notASTExpr), true},
+	{x: new(*bytes.Buffer), t: new(io.Reader), b: true},
+	{x: new(bytes.Buffer), t: new(io.Reader), b: false},
+	{x: new(*bytes.Buffer), t: new(io.ReaderAt), b: false},
+	{x: new(*ast.Ident), t: new(ast.Expr), b: true},
+	{x: new(*notAnExpr), t: new(ast.Expr), b: false},
+	{x: new(*ast.Ident), t: new(notASTExpr), b: false},
+	{x: new(notASTExpr), t: new(ast.Expr), b: false},
+	{x: new(ast.Expr), t: new(notASTExpr), b: false},
+	{x: new(*notAnExpr), t: new(notASTExpr), b: true},
 }
 
 type notAnExpr struct{}
 
 func (notAnExpr) Pos() token.Pos { return token.NoPos }
+
 func (notAnExpr) End() token.Pos { return token.NoPos }
-func (notAnExpr) exprNode()      {}
+
+func (notAnExpr) exprNode() {}
 
 type notASTExpr interface {
 	Pos() token.Pos
@@ -199,22 +200,24 @@ func TestImplements(t *testing.T) {
 }
 
 var assignableTests = []struct {
-	x interface{}
-	t interface{}
+	x any
+	t any
 	b bool
 }{
-	{new(chan int), new(<-chan int), true},
-	{new(<-chan int), new(chan int), false},
-	{new(*int), new(IntPtr), true},
-	{new(IntPtr), new(*int), true},
-	{new(IntPtr), new(IntPtr1), false},
-	{new(Ch), new(<-chan interface{}), true},
+	{x: new(chan int), t: new(<-chan int), b: true},
+	{x: new(<-chan int), t: new(chan int), b: false},
+	{x: new(*int), t: new(IntPtr), b: true},
+	{x: new(IntPtr), t: new(*int), b: true},
+	{x: new(IntPtr), t: new(IntPtr1), b: false},
+	{x: new(Ch), t: new(<-chan any), b: true},
 	// test runs implementsTests too
 }
 
 type IntPtr *int
+
 type IntPtr1 *int
-type Ch <-chan interface{}
+
+type Ch <-chan any
 
 func TestAssignableTo(t *testing.T) {
 	for _, tt := range append(assignableTests, implementsTests...) {
