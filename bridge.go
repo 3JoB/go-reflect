@@ -9,6 +9,10 @@ func toRT(t Type) reflect.Type {
 	return type_toType(t)
 }
 
+func ToRT(t Type) reflect.Type {
+	return type_toType(t)
+}
+
 func toRTs(t []Type) []reflect.Type {
 	out := make([]reflect.Type, len(t))
 	for idx, tt := range t {
@@ -19,6 +23,10 @@ func toRTs(t []Type) []reflect.Type {
 
 func toT(t reflect.Type) Type {
 	return (Type)(((*Value)(unsafe.Pointer(&t))).ptr)
+}
+
+func ToT(t reflect.Type) Type {
+	return toT(t)
 }
 
 func toRV(v Value) reflect.Value {
@@ -69,6 +77,10 @@ func toRSF(v StructField) reflect.StructField {
 	}
 }
 
+func ToRSF(v StructField) reflect.StructField {
+	return toRSF(v)
+}
+
 func toSF(v reflect.StructField) StructField {
 	return StructField{
 		Name:      v.Name,
@@ -79,6 +91,10 @@ func toSF(v reflect.StructField) StructField {
 		Index:     v.Index,
 		Anonymous: v.Anonymous,
 	}
+}
+
+func ToSF(v reflect.StructField) StructField {
+	return toSF(v)
 }
 
 func toM(v reflect.Method) Method {
