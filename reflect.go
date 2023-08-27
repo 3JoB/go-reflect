@@ -910,6 +910,12 @@ func (v Value) IsValid() bool {
 	return value_IsValid(v)
 }
 
+// IsZero reports whether v is the zero value for its type.
+// It panics if the argument is invalid.
+func (v Value) IsZero() bool {
+	return value_IsZero(v)
+}
+
 // Kind returns v's Kind.
 // If v is the zero Value (IsValid returns false), Kind returns Invalid.
 func (v Value) Kind() Kind {
@@ -1125,6 +1131,12 @@ func (v Value) SetString(x string) {
 // It panics if v's Kind is not Uint, Uintptr, Uint8, Uint16, Uint32, or Uint64, or if CanSet() is false.
 func (v Value) SetUint(x uint64) {
 	value_SetUint(v, x)
+}
+
+// SetZero sets v to be the zero value of v's type.
+// It panics if CanSet returns false.
+func (v Value) SetZero() {
+	value_SetZero(v)
 }
 
 // Slice returns v[i:j].

@@ -156,6 +156,10 @@ func value_IsValid(v Value) bool {
 	return toRV(v).IsValid()
 }
 
+func value_IsZero(v Value) bool {
+	return toRV(v).IsZero()
+}
+
 func value_Kind(v Value) Kind {
 	return toRV(v).Kind()
 }
@@ -267,6 +271,10 @@ func value_SetString(v Value, s string) {
 
 func value_SetUint(v Value, u uint64) {
 	toRV(v).SetUint(u)
+}
+
+func value_SetZero(v Value) {
+	toRV(v).SetZero()
 }
 
 func value_Slice(v Value, i int, j int) Value {
